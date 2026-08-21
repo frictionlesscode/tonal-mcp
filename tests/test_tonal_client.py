@@ -188,3 +188,16 @@ async def test_get_user_workouts_sends_pagination_headers(mocked: respx.MockRout
     sent_headers = route.calls.last.request.headers
     assert sent_headers["x-paginate-offset"] == "10"
     assert sent_headers["x-paginate-limit"] == "5"
+
+
+async def test_get_movements_hits_movements_endpoint(mocked: respx.MockRouter):
+    mocked.post(AUTH_URL).mock(return_value=httpx.Response(200, json=_token_response()))
+    route = mocked.get(f"{API_BASE}/movements").mock(
+        return_value=httpx.Response(200, json=[{"id": "m1", "name": "Barbell Bench Press"}])
+    )
+
+    async with TonalClient("user@example.com", "hunter2") as client:
+        result = await client.get_movements()
+
+    assert result == [{"id": "m1", "name": "Barbell Bench Press"}]
+    assert route.calls.last.request.method == "GET"

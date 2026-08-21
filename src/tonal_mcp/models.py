@@ -69,6 +69,28 @@ class WorkoutDetail(TypedDict):
     sets: list[SetOut]
 
 
+class MovementCatalogEntry(TypedDict):
+    """One entry from Tonal's live exercise catalog (GET /movements) -- see
+    list_exercises. Richer than MovementMatch (find_movement's shape): this
+    carries the fields actually useful for *choosing* an exercise, not just
+    resolving a name you already have in mind.
+    """
+
+    id: str
+    name: str
+    muscle_groups: list[str]
+    # 'UpperBody' / 'LowerBody' / 'Core', or '' -- confirmed live, not every
+    # movement is classified (e.g. some full-body/mobility moves).
+    body_region: str
+    # 'Push' / 'Pull', or '' -- confirmed live, plenty of movements (most
+    # core/isolation/mobility work) aren't classified either way.
+    push_pull: str
+    family: str
+    on_machine: bool
+    in_free_lift: bool
+    skill_level: int
+
+
 class EstimateResult(TypedDict):
     duration_sec: int
 

@@ -237,12 +237,49 @@ other two prompted real follow-up work, not just re-confirmation:
   return value is now the permanent record of what was deleted. Regression-tested at both
   layers (`test_service.py`'s stateful fake, and live in `test_integration.py`).
 
+## list_exercises findings (2026-08-21)
+
+Added so Claude can *choose* movements when programming a workout, not just resolve a name it
+already has in mind (`find_movement`'s job). Confirmed live before building anything:
+
+- **`GET /movements` returns a genuinely richer shape than `ts-tonal-client`'s own type
+  declaration promises** — `muscleGroups`, `bodyRegion`, `pushPull`, `family`, `skillLevel`,
+  `publishState`, `isGeneric` are all real and populated on live entries (e.g. "Barbell Bench
+  Press" → `muscleGroups: ["Chest", "Triceps", "Abs"]`, `bodyRegion: "UpperBody"`, `pushPull:
+  "Push"`); the declared `active: boolean` field doesn't actually exist in live responses.
+  `curated.json` (the static file `find_movement` reads) carries none of this — it's a
+  name/id/onMachine lookup table, not a browsable catalog, which is exactly the gap this fills.
+- **336 total movements; 12 are Tonal's own "generic"/freeform slots** (`isGeneric: true`,
+  e.g. "Handle Move") — improvised-movement placeholders, not real exercises a caller would
+  program into a workout. Excluded unconditionally in `service._get_exercise_catalog()`
+  rather than left for the caller to filter.
+- **The full raw response is ~700KB; trimmed to the fields this tool actually returns, ~324
+  real movements is still ~68KB** — too large to hand an LLM unfiltered by default (this
+  project's stated design principle: compact, not a dashboard dump). `list_exercises` caps at
+  `limit` (default 50) even with no filter, and documents that filters narrow to *relevant*
+  results while `limit` alone just truncates an arbitrary slice — pushing callers toward
+  `muscle_group`/`body_region`/`push_pull`/`query` rather than paging through everything.
+- **`bodyRegion` and `pushPull` are frequently empty strings, not always one of the "real"
+  values** — confirmed live: `''`, `'N/A'`, `'Pull'`, `'Push'` all appear for `pushPull`;
+  `''`, `'Core'`, `'LowerBody'`, `'UpperBody'` for `bodyRegion`. Documented in the tool
+  docstring as "unclassified," not a data quality problem to work around.
+- **No pagination on `/movements`** — it returns everything in one call, unlike
+  `/user-workouts`'s (non-functional, see above) pagination headers. Nothing to enforce
+  client-side here since there's no upstream "limit" being ignored.
+- **In-process cached after first call**, same tradeoff as `find_movement`'s static file:
+  Tonal's exercise catalog changes rarely enough that "restart the server to pick up a
+  change" is the right cost/complexity tradeoff over a TTL or manual-refresh tool.
+
 ## Tool contracts (M2)
 
 ```
 list_workouts(limit: int = 25) -> [{id, title, publish_state, duration_min, set_count, movement_count}]
 get_workout(workout_id: str) -> {id, title, description, publish_state, duration_min, sets: [...]}
 find_movement(name: str) -> [{id, name, on_machine}]  # ranked matches, reusing tonal-garmin-sync's approach
+list_exercises(muscle_group=None, body_region=None, push_pull=None, on_machine=None, query=None, limit=50)
+  -> [{id, name, muscle_groups: [...], body_region, push_pull, family, on_machine, in_free_lift, skill_level}]
+  # browses Tonal's live catalog (GET /movements) for programming decisions -- see "list_exercises
+  # findings" below. Complements find_movement (name -> id) rather than replacing it.
 estimate_workout_duration(sets: [...]) -> {duration_sec}
 create_workout(title: str, sets: [...], description: str = "") -> {id, title, duration_min}
 update_workout(workout_id: str, title: str, sets: [...], description: str = "") -> {id, title, duration_min}

@@ -12,6 +12,7 @@ from tonal_mcp import movements as movements_module
 from tonal_mcp.models import (
     DeleteResult,
     EstimateResult,
+    MovementCatalogEntry,
     SetIn,
     SetOut,
     WorkoutDetail,
@@ -21,6 +22,7 @@ from tonal_mcp.models import (
 from tonal_mcp.tonal_client import TonalClient, TonalClientError, WorkoutSet
 
 _client: TonalClient | None = None
+_exercise_catalog: list[dict[str, Any]] | None = None
 
 
 def _get_client() -> TonalClient:
@@ -113,6 +115,57 @@ async def get_workout(workout_id: str) -> WorkoutDetail:
 
 def find_movement(name: str, limit: int = 5) -> list[movements_module.MovementMatch]:
     return movements_module.find_movement(name, limit=limit)
+
+
+def _to_catalog_entry(raw: dict[str, Any]) -> MovementCatalogEntry:
+    return MovementCatalogEntry(
+        id=raw["id"],
+        name=raw["name"],
+        muscle_groups=raw.get("muscleGroups") or [],
+        body_region=raw.get("bodyRegion") or "",
+        push_pull=raw.get("pushPull") or "",
+        family=raw.get("family") or "",
+        on_machine=raw.get("onMachine", False),
+        in_free_lift=raw.get("inFreeLift", False),
+        skill_level=raw.get("skillLevel", 0),
+    )
+
+
+async def _get_exercise_catalog() -> list[dict[str, Any]]:
+    global _exercise_catalog
+    if _exercise_catalog is None:
+        raw = await _get_client().get_movements()
+        # Tonal's own "generic"/freeform movements (e.g. "Handle Move") are
+        # freeform slots for improvised movements, not real exercises a
+        # caller would choose when programming a workout -- excluded here,
+        # not by Tonal. 12 of 336, confirmed live (SPEC.md).
+        _exercise_catalog = [m for m in raw if not m.get("isGeneric")]
+    return _exercise_catalog
+
+
+async def list_exercises(
+    muscle_group: str | None = None,
+    body_region: str | None = None,
+    push_pull: str | None = None,
+    on_machine: bool | None = None,
+    query: str | None = None,
+    limit: int = 50,
+) -> list[MovementCatalogEntry]:
+    catalog = await _get_exercise_catalog()
+    results = catalog
+    if muscle_group:
+        target = muscle_group.lower()
+        results = [m for m in results if target in [g.lower() for g in (m.get("muscleGroups") or [])]]
+    if body_region:
+        results = [m for m in results if (m.get("bodyRegion") or "").lower() == body_region.lower()]
+    if push_pull:
+        results = [m for m in results if (m.get("pushPull") or "").lower() == push_pull.lower()]
+    if on_machine is not None:
+        results = [m for m in results if m.get("onMachine") == on_machine]
+    if query:
+        target = query.lower()
+        results = [m for m in results if target in m["name"].lower()]
+    return [_to_catalog_entry(m) for m in results[:limit]]
 
 
 async def estimate_workout_duration(sets: list[SetIn]) -> EstimateResult:

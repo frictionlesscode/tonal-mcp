@@ -98,7 +98,7 @@ async def throwaway_workout(mcp_client: Client):
 async def test_all_tools_are_registered(mcp_client: Client):
     tools = {t.name for t in await mcp_client.list_tools()}
     expected = {
-        "list_workouts", "get_workout", "find_movement",
+        "list_workouts", "get_workout", "find_movement", "list_exercises",
         "estimate_workout_duration", "create_workout", "update_workout", "delete_workout",
     }
     assert expected <= tools
@@ -187,3 +187,33 @@ async def test_delete_workout_archives_and_strips_sets(mcp_client: Client, throw
     assert after.title == created.title  # metadata survives
     assert after.sets == []  # content does not -- confirmed live, Tonal's own behavior; use
     # delete_workout's own return value (asserted above) to recover it, not this call
+
+
+async def test_list_exercises_returns_real_catalog_data(mcp_client: Client):
+    results = (await mcp_client.call_tool("list_exercises", {"query": "Bodyweight Squat"})).data
+    assert results
+    match = next(r for r in results if r.id == BODYWEIGHT_SQUAT_ID)
+    assert match.name == "Bodyweight Squat"
+    assert match.on_machine is False
+    # Not asserting specific muscle_groups/body_region values -- Tonal's own
+    # classification, not this server's, and could differ across accounts
+    # or change over time. Just confirm the fields are the right *type*.
+    assert isinstance(match.muscle_groups, list)
+    assert isinstance(match.skill_level, int)
+
+
+async def test_list_exercises_excludes_generic_movements_live(mcp_client: Client):
+    # "Handle Move" is Tonal's freeform/improvised-movement slot (isGeneric)
+    # -- confirmed live it exists in the raw catalog; list_exercises should
+    # never surface it as something to program into a workout.
+    results = (await mcp_client.call_tool("list_exercises", {"query": "Handle Move"})).data
+    assert results == []
+
+
+async def test_list_exercises_filters_combine_and_stay_under_limit(mcp_client: Client):
+    results = (await mcp_client.call_tool(
+        "list_exercises", {"body_region": "UpperBody", "push_pull": "Push", "limit": 10},
+    )).data
+    assert results
+    assert len(results) <= 10
+    assert all(r.body_region == "UpperBody" and r.push_pull == "Push" for r in results)

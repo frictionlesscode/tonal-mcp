@@ -19,6 +19,7 @@ from tonal_mcp import service  # noqa: E402
 from tonal_mcp.models import (  # noqa: E402
     DeleteResult,
     EstimateResult,
+    MovementCatalogEntry,
     SetIn,
     WorkoutDetail,
     WorkoutSummary,
@@ -89,6 +90,39 @@ def find_movement(name: str, limit: int = 5) -> list[MovementMatch]:
     variants). A movement_id from here is required for every set in
     create_workout/update_workout/estimate_workout_duration."""
     return service.find_movement(name, limit=limit)
+
+
+@mcp.tool
+async def list_exercises(
+    muscle_group: str | None = None,
+    body_region: str | None = None,
+    push_pull: str | None = None,
+    on_machine: bool | None = None,
+    query: str | None = None,
+    limit: int = 50,
+) -> list[MovementCatalogEntry]:
+    """Browse Tonal's full exercise catalog to choose movements when
+    programming a workout -- use this to decide WHAT to do (e.g. "what push
+    movements hit chest"); use find_movement once you already know the name
+    and just need its movement_id. Filters are optional and combine with
+    AND. muscle_group matches case-insensitively against each movement's
+    muscle group list (e.g. "chest", "triceps", "abs" -- Tonal classifies
+    per-movement, check a few real entries for the vocabulary rather than
+    guessing). body_region is one of 'UpperBody'/'LowerBody'/'Core' (many
+    movements are '' -- unclassified, not a 4th region). push_pull is
+    'Push'/'Pull' (also frequently '' -- most core/isolation/mobility moves
+    aren't classified either way, this isn't a data gap to work around).
+    query is a substring match on name. Without any filter this still caps
+    at `limit` (default 50) rather than returning the full ~324-entry
+    catalog -- pass filters to narrow what you actually need, not limit
+    alone, since limit truncates an arbitrary slice rather than the most
+    relevant one. Cached in-process after the first call within this
+    server's lifetime; Tonal's catalog changes rarely enough that a
+    restart-to-refresh tradeoff is the right one here."""
+    return await service.list_exercises(
+        muscle_group=muscle_group, body_region=body_region, push_pull=push_pull,
+        on_machine=on_machine, query=query, limit=limit,
+    )
 
 
 @mcp.tool

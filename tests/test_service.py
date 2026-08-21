@@ -63,6 +63,23 @@ class FakeClient:
         self.calls.append(("delete", workout_id))
         self._workouts[workout_id]["publishState"] = "archived"
 
+    async def get_movements(self):
+        self.calls.append(("movements",))
+        return [
+            {"id": "bench-1", "name": "Barbell Bench Press", "muscleGroups": ["Chest", "Triceps"],
+             "bodyRegion": "UpperBody", "pushPull": "Push", "family": "BenchPress",
+             "onMachine": True, "inFreeLift": True, "skillLevel": 2, "isGeneric": False},
+            {"id": "row-1", "name": "Seated Row", "muscleGroups": ["Back", "Biceps"],
+             "bodyRegion": "UpperBody", "pushPull": "Pull", "family": "Row",
+             "onMachine": True, "inFreeLift": False, "skillLevel": 1, "isGeneric": False},
+            {"id": "plank-1", "name": "Plank", "muscleGroups": ["Abs"],
+             "bodyRegion": "Core", "pushPull": "", "family": "Plank",
+             "onMachine": False, "inFreeLift": True, "skillLevel": 0, "isGeneric": False},
+            {"id": "generic-1", "name": "Handle Move", "muscleGroups": [],
+             "bodyRegion": "", "pushPull": "", "family": "",
+             "onMachine": True, "inFreeLift": False, "skillLevel": 0, "isGeneric": True},
+        ]
+
     async def estimate_workout_duration(self, sets):
         self.calls.append(("estimate", sets))
         return {"duration": 99}
@@ -72,6 +89,10 @@ class FakeClient:
 def fake_client(monkeypatch):
     fake = FakeClient()
     monkeypatch.setattr(service, "_client", fake)
+    # list_exercises caches the catalog at module level across calls within
+    # a process (by design -- see service.py) -- reset per test so one
+    # test's fake catalog can't leak into the next.
+    monkeypatch.setattr(service, "_exercise_catalog", None)
     return fake
 
 
@@ -183,3 +204,57 @@ def test_find_movement_delegates_to_movements_module(monkeypatch):
     )
     service.find_movement("Bench Press", limit=3)
     assert calls == [("Bench Press", 3)]
+
+
+async def test_list_exercises_excludes_generic_movements():
+    results = await service.list_exercises()
+    names = {r["name"] for r in results}
+    assert "Handle Move" not in names  # isGeneric -- a freeform slot, not a real exercise
+    assert names == {"Barbell Bench Press", "Seated Row", "Plank"}
+
+
+async def test_list_exercises_converts_shape():
+    results = await service.list_exercises(query="Bench")
+    assert results == [{
+        "id": "bench-1", "name": "Barbell Bench Press",
+        "muscle_groups": ["Chest", "Triceps"], "body_region": "UpperBody",
+        "push_pull": "Push", "family": "BenchPress",
+        "on_machine": True, "in_free_lift": True, "skill_level": 2,
+    }]
+
+
+async def test_list_exercises_filters_by_muscle_group_case_insensitive():
+    results = await service.list_exercises(muscle_group="chest")
+    assert [r["name"] for r in results] == ["Barbell Bench Press"]
+
+
+async def test_list_exercises_filters_by_body_region():
+    results = await service.list_exercises(body_region="Core")
+    assert [r["name"] for r in results] == ["Plank"]
+
+
+async def test_list_exercises_filters_by_push_pull():
+    results = await service.list_exercises(push_pull="Pull")
+    assert [r["name"] for r in results] == ["Seated Row"]
+
+
+async def test_list_exercises_filters_by_on_machine():
+    results = await service.list_exercises(on_machine=False)
+    assert [r["name"] for r in results] == ["Plank"]
+
+
+async def test_list_exercises_combines_filters_with_and():
+    results = await service.list_exercises(body_region="UpperBody", push_pull="Push")
+    assert [r["name"] for r in results] == ["Barbell Bench Press"]
+
+
+async def test_list_exercises_respects_limit():
+    results = await service.list_exercises(limit=1)
+    assert len(results) == 1
+
+
+async def test_list_exercises_caches_catalog_across_calls(fake_client: FakeClient):
+    await service.list_exercises()
+    await service.list_exercises()
+    kinds = [c[0] for c in fake_client.calls]
+    assert kinds.count("movements") == 1  # fetched once, reused the second time

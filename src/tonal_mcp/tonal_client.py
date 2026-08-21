@@ -237,6 +237,15 @@ class TonalClient:
 
     # -- reads --
 
+    async def get_movements(self) -> list[dict[str, Any]]:
+        """Tonal's full exercise catalog -- GET /movements. ~336 entries,
+        each with muscleGroups/bodyRegion/pushPull/family/skillLevel among
+        other fields (confirmed live; richer than the ts-tonal-client type
+        declaration suggests -- e.g. no working "active" field, but a real
+        publishState/isGeneric instead). No pagination on this endpoint;
+        it returns everything in one call."""
+        return await self._request("GET", "/movements")
+
     async def get_user_workouts(self, offset: int = 0, limit: int = 50) -> list[dict[str, Any]]:
         return await self._request(
             "GET", "/user-workouts",

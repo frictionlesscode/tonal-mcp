@@ -35,8 +35,12 @@ genuinely isn't available rather than a guess.
 
 ## Tools
 
-`list_workouts`, `get_workout`, `find_movement`, `estimate_workout_duration`,
+`list_workouts`, `get_workout`, `find_movement`, `list_exercises`, `estimate_workout_duration`,
 `create_workout`, `update_workout`, `delete_workout`.
+
+`list_exercises` browses Tonal's full exercise catalog (muscle groups, body region, push/pull,
+skill level) so Claude can *choose* movements when programming a workout — "what push
+movements hit chest" — rather than only resolving a name it already knows via `find_movement`.
 
 Every tool's docstring documents exactly what its fields mean, which ones are honestly `null`
 by design vs. genuinely unavailable, and any live-API quirk that shaped how it behaves — see
