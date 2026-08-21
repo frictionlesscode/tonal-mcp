@@ -135,11 +135,18 @@ async def _get_exercise_catalog() -> list[dict[str, Any]]:
     global _exercise_catalog
     if _exercise_catalog is None:
         raw = await _get_client().get_movements()
-        # Tonal's own "generic"/freeform movements (e.g. "Handle Move") are
-        # freeform slots for improvised movements, not real exercises a
-        # caller would choose when programming a workout -- excluded here,
-        # not by Tonal. 12 of 336, confirmed live (SPEC.md).
-        _exercise_catalog = [m for m in raw if not m.get("isGeneric")]
+        # Two kinds of non-exercise entry to exclude, confirmed live (SPEC.md):
+        # - Tonal's "generic"/freeform movements (isGeneric=True, e.g. "Handle
+        #   Move") -- improvised-movement slots, not real exercises.
+        # - The single "Rest" pseudo-movement (family="Rest", isGeneric=False
+        #   -- NOT caught by the isGeneric check alone; missed in the first
+        #   version of this filter, found by re-auditing after being asked
+        #   "are you sure you got them all"). Identified by family rather
+        #   than name/id pattern-matching since family is a controlled field,
+        #   not fragile string heuristics.
+        _exercise_catalog = [
+            m for m in raw if not m.get("isGeneric") and m.get("family") != "Rest"
+        ]
     return _exercise_catalog
 
 

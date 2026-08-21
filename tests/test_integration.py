@@ -210,6 +210,15 @@ async def test_list_exercises_excludes_generic_movements_live(mcp_client: Client
     assert results == []
 
 
+async def test_list_exercises_excludes_rest_pseudo_movement_live(mcp_client: Client):
+    # "Rest" is a real Tonal movement entry (family="Rest") that is NOT
+    # flagged isGeneric -- an isGeneric-only filter misses it. Found live by
+    # re-auditing the full catalog after being asked "are you sure you got
+    # them all" -- this is the regression test for that specific miss.
+    results = (await mcp_client.call_tool("list_exercises", {"query": "Rest"})).data
+    assert all(r.name != "Rest" for r in results)
+
+
 async def test_list_exercises_filters_combine_and_stay_under_limit(mcp_client: Client):
     results = (await mcp_client.call_tool(
         "list_exercises", {"body_region": "UpperBody", "push_pull": "Push", "limit": 10},

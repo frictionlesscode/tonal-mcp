@@ -78,6 +78,11 @@ class FakeClient:
             {"id": "generic-1", "name": "Handle Move", "muscleGroups": [],
              "bodyRegion": "", "pushPull": "", "family": "",
              "onMachine": True, "inFreeLift": False, "skillLevel": 0, "isGeneric": True},
+            # NOT isGeneric -- missed by the first version of the exclusion
+            # filter (see service.py's comment). Regression fixture for that.
+            {"id": "rest-1", "name": "Rest", "muscleGroups": [],
+             "bodyRegion": None, "pushPull": None, "family": "Rest",
+             "onMachine": False, "inFreeLift": False, "skillLevel": 0, "isGeneric": False},
         ]
 
     async def estimate_workout_duration(self, sets):
@@ -210,6 +215,10 @@ async def test_list_exercises_excludes_generic_movements():
     results = await service.list_exercises()
     names = {r["name"] for r in results}
     assert "Handle Move" not in names  # isGeneric -- a freeform slot, not a real exercise
+    # "Rest" isn't isGeneric -- a naive "just check isGeneric" filter misses
+    # it (this was a real bug, found by re-auditing). Excluded by family
+    # instead; exact-set assertion below fails if either exclusion regresses.
+    assert "Rest" not in names
     assert names == {"Barbell Bench Press", "Seated Row", "Plank"}
 
 

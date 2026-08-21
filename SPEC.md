@@ -249,11 +249,17 @@ already has in mind (`find_movement`'s job). Confirmed live before building anyt
   "Push"`); the declared `active: boolean` field doesn't actually exist in live responses.
   `curated.json` (the static file `find_movement` reads) carries none of this — it's a
   name/id/onMachine lookup table, not a browsable catalog, which is exactly the gap this fills.
-- **336 total movements; 12 are Tonal's own "generic"/freeform slots** (`isGeneric: true`,
-  e.g. "Handle Move") — improvised-movement placeholders, not real exercises a caller would
-  program into a workout. Excluded unconditionally in `service._get_exercise_catalog()`
-  rather than left for the caller to filter.
-- **The full raw response is ~700KB; trimmed to the fields this tool actually returns, ~324
+- **336 total movements; 13 aren't real, programmable exercises** — 12 are Tonal's own
+  "generic"/freeform slots (`isGeneric: true`: "Handle Move" ×3, "Rope Move" ×3, "Bar Move"
+  ×3, "Ankle Strap Move" ×3, each a set of near-identical entries with different ids), plus
+  one more that a first version of this filter missed: a `"Rest"` pseudo-movement
+  (`family: "Rest"`, `isGeneric: false` — **not** caught by an isGeneric-only check). Found
+  by re-auditing the full catalog after being asked "are you sure you got them all" rather
+  than trusting the first pass's count — the lesson this project keeps relearning, applied to
+  itself this time. Both kinds excluded unconditionally in `service._get_exercise_catalog()`,
+  identified by `isGeneric`/`family` (controlled fields) rather than name pattern-matching;
+  regression-tested at both the mocked and live tiers for each exclusion separately.
+- **The full raw response is ~700KB; trimmed to the fields this tool actually returns, ~323
   real movements is still ~68KB** — too large to hand an LLM unfiltered by default (this
   project's stated design principle: compact, not a dashboard dump). `list_exercises` caps at
   `limit` (default 50) even with no filter, and documents that filters narrow to *relevant*

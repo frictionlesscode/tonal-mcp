@@ -113,7 +113,7 @@ async def list_exercises(
     'Push'/'Pull' (also frequently '' -- most core/isolation/mobility moves
     aren't classified either way, this isn't a data gap to work around).
     query is a substring match on name. Without any filter this still caps
-    at `limit` (default 50) rather than returning the full ~324-entry
+    at `limit` (default 50) rather than returning the full ~323-entry
     catalog -- pass filters to narrow what you actually need, not limit
     alone, since limit truncates an arbitrary slice rather than the most
     relevant one. Cached in-process after the first call within this
