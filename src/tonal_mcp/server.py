@@ -53,10 +53,15 @@ async def list_workouts(limit: int = 25) -> list[WorkoutSummary]:
     guessable. publish_state is 'published' for a live workout or 'archived'
     for one delete_workout already removed (archives are soft-deleted and
     still listed/fetchable, but see get_workout's note -- their sets are
-    gone). set_count is null here, always -- Tonal's list endpoint doesn't
-    return set data at all (confirmed live), only get_workout does. Use
-    movement_count (distinct movements involved, not the same number as set
-    count) as the size signal available without a follow-up call."""
+    gone; delete_workout's own return value is the only place an archived
+    workout's sets survive). set_count is null here, permanently by design
+    -- Tonal's list endpoint never returns set data (confirmed live), and
+    this tool deliberately doesn't fetch full detail per listed item to get
+    a real count (that's an N-call fan-out on every list_workouts call, for
+    data most callers won't need for most items). movement_count (distinct
+    movements involved -- not the same number as set count) is the
+    permanent, real signal available without a follow-up call; call
+    get_workout on the specific id(s) you care about for an exact count."""
     return await service.list_workouts(limit=limit)
 
 
@@ -66,10 +71,12 @@ async def get_workout(workout_id: str) -> WorkoutDetail:
     prescribed reps or duration, weight_percentage, block/round structure).
     Fetch this before update_workout so the edit is based on the workout's
     real current sets, not a guess. Warning: an archived workout's sets come
-    back as an empty list -- Tonal itself stops returning set data once
+    back as an empty list here -- Tonal itself stops returning set data once
     publish_state is 'archived' (confirmed live, not something this server
-    strips). If you might need a workout's content after archiving it,
-    capture it via get_workout *before* calling delete_workout."""
+    strips). delete_workout's own return value captures the sets right
+    before archiving for exactly this reason -- use that snapshot, not a
+    get_workout call made after the fact, if you need an archived workout's
+    content."""
     return await service.get_workout(workout_id)
 
 
@@ -118,11 +125,14 @@ async def update_workout(workout_id: str, title: str, sets: list[SetIn], descrip
 async def delete_workout(workout_id: str) -> DeleteResult:
     """Archive a custom workout (soft delete -- Tonal sets publish_state to
     'archived', it isn't destroyed, and its title/description/duration
-    remain fetchable via get_workout). Its sets do NOT survive, though --
-    Tonal stops returning set data for an archived workout (confirmed live).
-    If there's any chance you'll want this workout's content again, call
-    get_workout first and hold onto the result -- there's no undo for the
-    sets specifically, only for the archive status."""
+    remain fetchable via get_workout afterward). Its sets do NOT survive a
+    later get_workout call, though -- Tonal itself stops returning set data
+    for an archived workout (confirmed live). This response's own `sets`
+    field is captured right before archiving specifically so that content
+    isn't lost: it's a snapshot of what the workout contained at the moment
+    of deletion, not a live re-fetch, and it's the only place that content
+    still exists after this call returns -- hold onto it if you might want
+    to recreate this workout later."""
     return await service.delete_workout(workout_id)
 
 

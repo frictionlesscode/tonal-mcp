@@ -82,3 +82,13 @@ class WriteResult(TypedDict):
 class DeleteResult(TypedDict):
     id: str
     publish_state: str
+    title: str
+    # A snapshot of what the workout looked like the instant before this
+    # call archived it -- not a live re-fetch. Tonal itself stops returning
+    # set data for an archived workout (confirmed live, see SPEC.md), so
+    # this is the *only* place that content survives past this call; a
+    # later get_workout on the same id will show sets: []. Captured here
+    # rather than just documented as a caller's responsibility, because a
+    # caller shouldn't have to remember to fetch first when the tool that's
+    # about to destroy the data already has it in hand.
+    sets: list[SetOut]

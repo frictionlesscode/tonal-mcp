@@ -173,7 +173,7 @@ shape (no `sets` key in list results; no `sets` key on an archived `get_workout_
 of the more convenient wrong shape, and `mcp_smoke_local.py` needs the same treatment — see
 the "Testing strategy" section below, added in direct response to this.
 
-## Testing strategy (2026-08-21, post-bug-report)
+## Testing strategy (2026-08-21, post-bug-report; upgraded same day)
 
 The gap above is structural, not a one-off oversight: mocked tests can only be as correct as
 the fixtures they're handed, and a wrong assumption about a third-party API's shape produces a
@@ -181,23 +181,61 @@ test that passes for the wrong reason. The fix isn't "write more mocked tests" -
 the one thing that *does* touch the real API assert on every claim this server's docstrings
 make, not just exercise the call.
 
-Going forward, `scripts/mcp_smoke_local.py` is the source of truth for "does this actually
-work," and the standing rule for it: **every behavioral claim in a tool's docstring gets a
-live assertion in this script, not just a call.** Concretely, that means:
+**Upgraded from a standalone script to real integration tests** (`tests/test_integration.py`,
+marked `@pytest.mark.integration`, excluded from the default `pytest` run via
+`addopts = "-m 'not integration'"`, run explicitly with `pytest -m integration`) after the
+first version of this section shipped as `scripts/mcp_smoke_local.py` and someone reasonably
+asked "shouldn't we have our own integration tests?" The concrete problem with the script form:
+no cleanup guarantee -- a failed assertion partway through just crashed the script, leaving the
+created test workout stranded rather than reaching `delete_workout`. `tests/test_integration.py`
+uses a fixture (`throwaway_workout`) with `try/finally` teardown instead, so a failing test
+still archives what it created. It also gets per-test failure isolation (one broken assertion
+doesn't prevent the other six tests from running) and standard `pytest` tooling, neither of
+which the sequential script had. `scripts/mcp_smoke_local.py` is deleted, not kept alongside --
+two versions of the same live check would drift.
+
+The standing rule carries over unchanged: **every behavioral claim in a tool's docstring gets a
+live assertion, not just a call.**
 
 - Every field in every response gets its type and (where knowable) value asserted -- not just
   the fields the current change happens to touch. `set_count`'s `None`-ness would have been
   caught immediately by an assertion on it, not just a call to `list_workouts`.
 - Any docstring claim of the shape "X behaves like Y" (e.g. "still listed/fetchable") gets a
-  literal round-trip proving it, the same way `delete_workout`'s archive-then-refetch already
-  proves `publish_state` -- extended now to also check `sets`.
-- When a live-API finding changes a docstring or a return shape (as both bugs above did), the
-  smoke script changes in the same commit, not as a follow-up -- the fix and its proof land
-  together.
+  literal round-trip proving it -- `test_delete_workout_archives_and_strips_sets` does exactly
+  this for `publish_state` *and* `sets`.
+- When a live-API finding changes a docstring or a return shape, the integration test changes
+  in the same commit, not as a follow-up -- the fix and its proof land together.
+- Real API state matters: the mocked `FakeClient` in `test_service.py` was rewritten to be
+  *stateful* (an actual `dict` of workouts that `delete_workout` mutates) rather than branching
+  on a magic id like `"archived-1"`, specifically so it could model "sets present before
+  archiving, gone after" instead of two disconnected canned responses that happened to differ.
 
 This doesn't replace the mocked pytest suite (still the fast, offline check for request-shape
-translation and error handling) -- it's the complement that catches wrong assumptions the
-mocked suite structurally cannot.
+translation and error handling, and the only one that runs without live credentials) -- it's
+the complement that catches wrong assumptions the mocked suite structurally cannot.
+
+## Retest findings (2026-08-21) — second bug report, after the first fix pass
+
+Filed after retesting the fixes above from a real chat. `limit` confirmed fixed as-is. The
+other two prompted real follow-up work, not just re-confirmation:
+
+- **`set_count` staying `None` forever, with `movement_count` alongside it, was flagged as
+  only a partial fix** -- fair question: is `movement_count` the permanent answer, or is
+  `set_count` still meant to ship? Decided and documented explicitly in `list_workouts`'
+  docstring: `movement_count` is the permanent list-time signal; `set_count` stays `None`
+  by design, because populating it for real would mean an N-call fan-out (one `get_workout`
+  per listed item) on every `list_workouts` call, for data most callers won't need for most
+  items. Callers who need an exact count for specific workouts call `get_workout` on those
+  ids -- the tool doesn't do that eagerly on their behalf.
+- **"Archived workouts lose their sets" was correctly marked Not Fixed** -- the first pass
+  only documented the behavior, it didn't address the actual pain point (an archived workout
+  can't be used to recreate itself). Real fix this round: `delete_workout` now fetches the
+  workout's full detail *before* archiving it and returns that snapshot (`title`, `sets`) in
+  its own response -- `DeleteResult` gained `title`/`sets` fields. A `get_workout` call made
+  *after* archiving still shows `sets: []` (that part is genuinely Tonal's own behavior and
+  can't change), but a caller no longer has to remember to fetch first: `delete_workout`'s
+  return value is now the permanent record of what was deleted. Regression-tested at both
+  layers (`test_service.py`'s stateful fake, and live in `test_integration.py`).
 
 ## Tool contracts (M2)
 
@@ -208,7 +246,10 @@ find_movement(name: str) -> [{id, name, on_machine}]  # ranked matches, reusing 
 estimate_workout_duration(sets: [...]) -> {duration_sec}
 create_workout(title: str, sets: [...], description: str = "") -> {id, title, duration_min}
 update_workout(workout_id: str, title: str, sets: [...], description: str = "") -> {id, title, duration_min}
-delete_workout(workout_id: str) -> {id, publish_state}  # archives, does not destroy
+delete_workout(workout_id: str) -> {id, publish_state, title, sets: [...]}  # archives (does not
+  # destroy); sets is a snapshot captured immediately before archiving -- Tonal itself strips
+  # sets from a later get_workout on an archived id, so this response is the only place they
+  # survive (see "Retest findings")
 ```
 
 Each `sets` entry at the tool boundary: `{movement_id, block_number, block_start, set_group,

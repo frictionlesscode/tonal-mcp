@@ -23,3 +23,7 @@ tonal_mcp = ["data/*.json"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "integration: hits the real Tonal account (needs TONAL_EMAIL/TONAL_PASSWORD in .env); excluded by default, run with `pytest -m integration`",
+]
+addopts = "-m 'not integration'"

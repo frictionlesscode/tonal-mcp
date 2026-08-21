@@ -9,39 +9,47 @@ from tonal_mcp import service
 
 
 class FakeClient:
+    """Stateful, not just canned responses -- delete_workout's snapshot-then-
+    archive behavior needs get_workout_by_id to actually reflect the state
+    change delete_workout causes (sets present before, gone after), which a
+    fake keyed only on workout_id can't model.
+    """
+
     def __init__(self):
         self.calls: list[tuple] = []
+        self._workouts: dict[str, dict] = {
+            "w1": {
+                "id": "w1", "title": "Leg Day", "description": "d", "publishState": "published",
+                "duration": 120, "coachId": "coach-1", "assetId": "asset-1", "level": "intermediate",
+                "movementIds": ["m1", "m2"],
+                "sets": [
+                    {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
+                     "blockNumber": 1, "round": 1, "description": ""},
+                ],
+            },
+            "w2": {"id": "w2", "title": "Push Day", "description": "", "publishState": "published",
+                   "duration": 60, "movementIds": ["m3"], "sets": []},
+            "w3": {"id": "w3", "title": "Pull Day", "description": "", "publishState": "published",
+                   "duration": 90, "sets": []},
+        }
 
     async def get_user_workouts(self, offset=0, limit=50):
         self.calls.append(("list", offset, limit))
-        # No "sets" key at all -- matches the real /user-workouts response
-        # (confirmed live, see SPEC.md), and always returns everything
-        # regardless of `limit`/`offset`, same as the live API does -- the
-        # fake exists to prove service.py enforces `limit` itself.
+        # The list shape never includes "sets" at all (confirmed live, see
+        # SPEC.md) -- built separately from self._workouts rather than just
+        # stripping "sets" so this stays honest about what the real list
+        # endpoint's fields actually are (movementIds, no sets key).
         return [
-            {"id": "w1", "title": "Leg Day", "publishState": "published",
-             "duration": 120, "movementIds": ["m1", "m2"]},
-            {"id": "w2", "title": "Push Day", "publishState": "published",
-             "duration": 60, "movementIds": ["m3"]},
-            {"id": "w3", "title": "Pull Day", "publishState": "published", "duration": 90},
+            {k: v for k, v in w.items() if k != "sets"}
+            for w in self._workouts.values()
         ]
 
     async def get_workout_by_id(self, workout_id):
         self.calls.append(("get", workout_id))
-        is_archived = workout_id == "archived-1"
-        raw = {
-            "id": workout_id, "title": "Leg Day", "description": "d",
-            "publishState": "archived" if is_archived else "published",
-            "duration": 120, "coachId": "coach-1", "assetId": "asset-1", "level": "intermediate",
-        }
-        # An archived workout has no "sets" key at all -- confirmed live,
-        # not something this server strips (SPEC.md).
-        if not is_archived:
-            raw["sets"] = [
-                {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
-                 "blockNumber": 1, "round": 1, "description": ""},
-            ]
-        return raw
+        w = dict(self._workouts[workout_id])
+        if w["publishState"] == "archived":
+            w.pop("sets", None)  # confirmed live: no "sets" key at all once archived
+        return w
 
     async def create_workout(self, title, sets, description=""):
         self.calls.append(("create", title, sets, description))
@@ -53,6 +61,7 @@ class FakeClient:
 
     async def delete_workout(self, workout_id):
         self.calls.append(("delete", workout_id))
+        self._workouts[workout_id]["publishState"] = "archived"
 
     async def estimate_workout_duration(self, sets):
         self.calls.append(("estimate", sets))
@@ -110,8 +119,9 @@ async def test_get_workout_converts_sets():
     assert detail["sets"][0]["prescribed_reps"] == 10
 
 
-async def test_get_workout_archived_has_empty_sets_not_an_error():
-    detail = await service.get_workout("archived-1")
+async def test_get_workout_archived_has_empty_sets_not_an_error(fake_client: FakeClient):
+    await service.delete_workout("w1")  # transitions w1 to archived in the fake, same as live
+    detail = await service.get_workout("w1")
     assert detail["publish_state"] == "archived"
     assert detail["title"] == "Leg Day"  # metadata survives
     assert detail["sets"] == []  # content does not (confirmed live)
@@ -136,10 +146,28 @@ async def test_update_workout_fetches_existing_first_for_coach_asset_level(fake_
 
 
 async def test_delete_workout_reports_publish_state_after_archive(fake_client: FakeClient):
-    result = await service.delete_workout("archived-1")
-    assert result == {"id": "archived-1", "publish_state": "archived"}
+    result = await service.delete_workout("w1")
+    assert result["id"] == "w1"
+    assert result["publish_state"] == "archived"
     kinds = [c[0] for c in fake_client.calls]
-    assert kinds == ["delete", "get"]
+    assert kinds == ["get", "delete", "get"]  # snapshot BEFORE archiving, then confirm after
+
+
+async def test_delete_workout_snapshot_captures_sets_before_they_vanish(fake_client: FakeClient):
+    # The actual fix for the "archived workouts lose their sets" bug report:
+    # delete_workout's own return value is the only place that content
+    # survives, since a later get_workout on the same id will show sets: [].
+    result = await service.delete_workout("w1")
+    assert result["title"] == "Leg Day"
+    assert result["sets"] == [
+        {"movement_id": "m1", "prescribed_reps": 10, "prescribed_duration": None,
+         "weight_percentage": 100, "block_number": 1, "round": 1, "description": ""},
+    ]
+
+    # And confirm the thing this exists to work around: a follow-up
+    # get_workout genuinely no longer has it.
+    after = await service.get_workout("w1")
+    assert after["sets"] == []
 
 
 async def test_estimate_workout_duration():

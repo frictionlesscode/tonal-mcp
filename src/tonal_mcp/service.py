@@ -141,6 +141,17 @@ async def update_workout(workout_id: str, title: str, sets: list[SetIn], descrip
 
 
 async def delete_workout(workout_id: str) -> DeleteResult:
+    # Snapshot before archiving -- Tonal stops returning sets for an
+    # archived workout (confirmed live, see SPEC.md), so this fetch is the
+    # last chance to capture them. Fetching first (rather than after) also
+    # means a workout that's already archived, or doesn't exist, fails here
+    # with a clear error instead of silently "succeeding" against nothing.
+    before = await _get_client().get_workout_by_id(workout_id)
     await _get_client().delete_workout(workout_id)
-    updated = await _get_client().get_workout_by_id(workout_id)
-    return DeleteResult(id=workout_id, publish_state=updated.get("publishState", ""))
+    after = await _get_client().get_workout_by_id(workout_id)
+    return DeleteResult(
+        id=workout_id,
+        publish_state=after.get("publishState", ""),
+        title=before["title"],
+        sets=[_to_set_out(s) for s in before.get("sets") or []],
+    )
