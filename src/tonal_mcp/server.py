@@ -52,7 +52,11 @@ async def list_workouts(limit: int = 25) -> list[WorkoutSummary]:
     before calling get_workout/update_workout/delete_workout -- ids aren't
     guessable. publish_state is 'published' for a live workout or 'archived'
     for one delete_workout already removed (archives are soft-deleted and
-    still listed/fetchable)."""
+    still listed/fetchable, but see get_workout's note -- their sets are
+    gone). set_count is null here, always -- Tonal's list endpoint doesn't
+    return set data at all (confirmed live), only get_workout does. Use
+    movement_count (distinct movements involved, not the same number as set
+    count) as the size signal available without a follow-up call."""
     return await service.list_workouts(limit=limit)
 
 
@@ -61,7 +65,11 @@ async def get_workout(workout_id: str) -> WorkoutDetail:
     """Full detail for one custom workout, including every set (movement,
     prescribed reps or duration, weight_percentage, block/round structure).
     Fetch this before update_workout so the edit is based on the workout's
-    real current sets, not a guess."""
+    real current sets, not a guess. Warning: an archived workout's sets come
+    back as an empty list -- Tonal itself stops returning set data once
+    publish_state is 'archived' (confirmed live, not something this server
+    strips). If you might need a workout's content after archiving it,
+    capture it via get_workout *before* calling delete_workout."""
     return await service.get_workout(workout_id)
 
 
@@ -109,7 +117,12 @@ async def update_workout(workout_id: str, title: str, sets: list[SetIn], descrip
 @mcp.tool
 async def delete_workout(workout_id: str) -> DeleteResult:
     """Archive a custom workout (soft delete -- Tonal sets publish_state to
-    'archived', it isn't destroyed and remains fetchable via get_workout)."""
+    'archived', it isn't destroyed, and its title/description/duration
+    remain fetchable via get_workout). Its sets do NOT survive, though --
+    Tonal stops returning set data for an archived workout (confirmed live).
+    If there's any chance you'll want this workout's content again, call
+    get_workout first and hold onto the result -- there's no undo for the
+    sets specifically, only for the archive status."""
     return await service.delete_workout(workout_id)
 
 

@@ -56,7 +56,12 @@ def _to_summary(raw: dict[str, Any]) -> WorkoutSummary:
         title=raw["title"],
         publish_state=raw.get("publishState", ""),
         duration_min=_minutes(raw.get("duration")),
-        set_count=len(raw.get("sets") or []),
+        # "sets" is never present in the list payload (confirmed live -- see
+        # models.py) -- None here is honest, not a bug reintroduced. A raw
+        # empty list vs. a genuinely missing key are indistinguishable in
+        # this API in practice, so this doesn't try to tell them apart.
+        set_count=len(raw["sets"]) if "sets" in raw else None,
+        movement_count=len(raw.get("movementIds") or []),
     )
 
 
@@ -92,8 +97,13 @@ def _minutes(seconds: float | None) -> float | None:
 
 
 async def list_workouts(limit: int = 25) -> list[WorkoutSummary]:
+    # Tonal's own pagination (the x-paginate-* headers ts-tonal-client sends,
+    # and the query-param form) is a no-op against the live API -- confirmed
+    # live at several limit values, always returns the account's full
+    # unpaginated list regardless (SPEC.md). Sliced here so this tool's own
+    # `limit` contract holds even though the upstream one doesn't.
     raw = await _get_client().get_user_workouts(offset=0, limit=limit)
-    return [_to_summary(w) for w in raw]
+    return [_to_summary(w) for w in raw[:limit]]
 
 
 async def get_workout(workout_id: str) -> WorkoutDetail:

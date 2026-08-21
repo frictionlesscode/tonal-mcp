@@ -41,7 +41,18 @@ class WorkoutSummary(TypedDict):
     title: str
     publish_state: str
     duration_min: float | None
-    set_count: int
+    # Always None -- confirmed live (SPEC.md), GET /user-workouts (the list
+    # endpoint) never includes a sets array at all, unlike GET /workouts/{id}.
+    # Left in the shape (rather than dropped) so a caller doesn't have to
+    # guess whether "missing" means "not fetched" or "confirmed zero" --
+    # get_workout is the only way to get a real count.
+    set_count: int | None
+    # A real, differently-sourced signal for "how big is this workout" that
+    # *is* available at list time: count of distinct movements involved
+    # (from the list endpoint's own movementIds). Not the same number as set
+    # count -- one movement can appear across several sets -- so it's named
+    # and documented as what it actually is, not offered as a stand-in.
+    movement_count: int
 
 
 class WorkoutDetail(TypedDict):
@@ -50,6 +61,11 @@ class WorkoutDetail(TypedDict):
     description: str
     publish_state: str
     duration_min: float | None
+    # Empty for an archived workout -- confirmed live (SPEC.md): Tonal's own
+    # GET /workouts/{id} stops returning a sets array at all once
+    # publish_state is 'archived', not something this server strips. Capture
+    # sets via get_workout *before* calling delete_workout if you'll need
+    # them after.
     sets: list[SetOut]
 
 

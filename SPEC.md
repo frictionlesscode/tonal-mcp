@@ -134,11 +134,75 @@ Add custom connector → `https://your-funnel-host.ts.net/tonal/mcp`, sign in wi
 `MCP_BEARER_TOKEN` from `.env`. Then confirm from an actual chat: ask it to create a small
 test workout, check it in the Tonal app, then update and archive it.
 **Gate:** `create_workout`/`update_workout` both work from an actual Claude chat.
+Confirmed live from an actual chat 2026-08-21 -- which is also how the two bugs below were
+found (see "Bug report findings").
+
+## Bug report findings (2026-08-21) — filed after real chat testing
+
+Both traced to genuine live-API behavior, not conversion bugs in this server -- confirmed by
+reproducing each directly against `TonalClient`, bypassing `service.py` entirely.
+
+- **`list_workouts`'s `set_count` was always 0.** `GET /user-workouts` (the list endpoint)
+  never includes a `sets` array at all — confirmed live: a real item's keys have
+  `movementIds` (distinct movements used) but no `sets`. `set_count=len(raw.get("sets") or
+  [])` was therefore computing `len([])` for every item, indistinguishable from "confirmed
+  empty workout." Fixed: `set_count` is `int | None`, `None` when the source data isn't
+  present (honest, not fabricated); added `movement_count` (from `movementIds`) as a
+  real, differently-sourced size signal available at list time. `models.py`/`service.py`.
+- **Same call also ignored `limit`.** `limit=5` returned 10 (the account's full count) —
+  confirmed live at limit values 2/5/10/25/100, all returning the same 10, and confirmed the
+  API ignores both the `x-paginate-*` headers ts-tonal-client sends *and* an `?offset=&limit=`
+  query-string form. Fixed by truncating client-side in `service.list_workouts` so this
+  tool's own `limit` contract holds regardless of what the upstream endpoint honors.
+- **Archived workouts lose their `sets` array on `get_workout`.** Confirmed live: create →
+  get (7 sets present) → delete → get again → `sets` key is entirely absent from the raw
+  response, not just empty (title/description/duration_min/publish_state all still present).
+  This is Tonal's own behavior, not something this server strips. Not "fixable" in the sense
+  of recovering the data — fixed by documenting it loudly in `get_workout`'s and
+  `delete_workout`'s docstrings (capture sets via `get_workout` *before* archiving if you'll
+  need them) rather than leaving the "still listed/fetchable" claim implying full content.
+
+**Why the test suite didn't catch these first**: the mocked unit tests (`test_tonal_client.py`,
+`test_service.py`) encode assumptions about the API's shape as hand-written fixtures — a wrong
+assumption about the shape produces a self-consistent but wrong test, not a failure. And
+`scripts/mcp_smoke_local.py`, the one check that hits the real account, *called* both
+`list_workouts` and `get_workout`-after-`delete_workout` but never asserted on the specific
+fields that were actually broken (`set_count`'s value; `sets` after archiving) — it exercised
+the code path without checking the thing that mattered. Both fake fixtures now mirror the real
+shape (no `sets` key in list results; no `sets` key on an archived `get_workout_by_id`) instead
+of the more convenient wrong shape, and `mcp_smoke_local.py` needs the same treatment — see
+the "Testing strategy" section below, added in direct response to this.
+
+## Testing strategy (2026-08-21, post-bug-report)
+
+The gap above is structural, not a one-off oversight: mocked tests can only be as correct as
+the fixtures they're handed, and a wrong assumption about a third-party API's shape produces a
+test that passes for the wrong reason. The fix isn't "write more mocked tests" -- it's making
+the one thing that *does* touch the real API assert on every claim this server's docstrings
+make, not just exercise the call.
+
+Going forward, `scripts/mcp_smoke_local.py` is the source of truth for "does this actually
+work," and the standing rule for it: **every behavioral claim in a tool's docstring gets a
+live assertion in this script, not just a call.** Concretely, that means:
+
+- Every field in every response gets its type and (where knowable) value asserted -- not just
+  the fields the current change happens to touch. `set_count`'s `None`-ness would have been
+  caught immediately by an assertion on it, not just a call to `list_workouts`.
+- Any docstring claim of the shape "X behaves like Y" (e.g. "still listed/fetchable") gets a
+  literal round-trip proving it, the same way `delete_workout`'s archive-then-refetch already
+  proves `publish_state` -- extended now to also check `sets`.
+- When a live-API finding changes a docstring or a return shape (as both bugs above did), the
+  smoke script changes in the same commit, not as a follow-up -- the fix and its proof land
+  together.
+
+This doesn't replace the mocked pytest suite (still the fast, offline check for request-shape
+translation and error handling) -- it's the complement that catches wrong assumptions the
+mocked suite structurally cannot.
 
 ## Tool contracts (M2)
 
 ```
-list_workouts(limit: int = 25) -> [{id, title, publish_state, duration_min, set_count}]
+list_workouts(limit: int = 25) -> [{id, title, publish_state, duration_min, set_count, movement_count}]
 get_workout(workout_id: str) -> {id, title, description, publish_state, duration_min, sets: [...]}
 find_movement(name: str) -> [{id, name, on_machine}]  # ranked matches, reusing tonal-garmin-sync's approach
 estimate_workout_duration(sets: [...]) -> {duration_sec}
