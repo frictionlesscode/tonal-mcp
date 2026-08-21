@@ -249,18 +249,29 @@ already has in mind (`find_movement`'s job). Confirmed live before building anyt
   "Push"`); the declared `active: boolean` field doesn't actually exist in live responses.
   `curated.json` (the static file `find_movement` reads) carries none of this — it's a
   name/id/onMachine lookup table, not a browsable catalog, which is exactly the gap this fills.
-- **336 total movements; 13 aren't real, programmable exercises** — 12 are Tonal's own
-  "generic"/freeform slots (`isGeneric: true`: "Handle Move" ×3, "Rope Move" ×3, "Bar Move"
-  ×3, "Ankle Strap Move" ×3, each a set of near-identical entries with different ids), plus
-  one more that a first version of this filter missed: a `"Rest"` pseudo-movement
-  (`family: "Rest"`, `isGeneric: false` — **not** caught by an isGeneric-only check). Found
-  by re-auditing the full catalog after being asked "are you sure you got them all" rather
-  than trusting the first pass's count — the lesson this project keeps relearning, applied to
-  itself this time. Both kinds excluded unconditionally in `service._get_exercise_catalog()`,
-  identified by `isGeneric`/`family` (controlled fields) rather than name pattern-matching;
-  regression-tested at both the mocked and live tiers for each exclusion separately.
-- **The full raw response is ~700KB; trimmed to the fields this tool actually returns, ~323
-  real movements is still ~68KB** — too large to hand an LLM unfiltered by default (this
+- **336 total movements; 13 are Tonal's "generic"/pseudo-movement entries, not named
+  exercises** — 12 freeform slots (`isGeneric: true`: "Handle Move" ×3, "Rope Move" ×3, "Bar
+  Move" ×3, "Ankle Strap Move" ×3, each a set of near-identical entries with different ids —
+  real Tonal duplicates, not a bug here) plus one more not caught by an isGeneric-only check:
+  a `"Rest"` pseudo-movement (`family: "Rest"`, `isGeneric: false`). Found by re-auditing the
+  full catalog after being asked "are you sure you got them all" rather than trusting the
+  first pass's count.
+- **Reversed a design decision same-day: these 13 are included, not excluded.** The first
+  version of this tool excluded all 13 as "not real exercises a caller would program." Told
+  directly this was wrong — rest periods and improvised/freeform work (a real Tonal use case:
+  program the accessory-move slot, then describe what you actually did) both need to be
+  programmable. Confirmed live before reversing: `create_workout` accepts both a generic
+  movement_id and `"Rest"`, and Tonal stores a set's `description` exactly as sent against a
+  generic movement (e.g. movement "Handle Move" + `description: "Face Pulls"` round-trips
+  unchanged) — this is also the pattern `ts-tonal-client`'s own `create-workout.ts` example
+  uses. `MovementCatalogEntry` now carries `is_generic` so a caller can tell "this one needs a
+  descriptive `description`" without the entry being hidden; `family == "Rest"` is the
+  distinguishing signal for the rest entry, surfaced via the `family` field already returned.
+  Regression-tested at all three tiers (mocked HTTP, mocked service-layer inclusion +
+  flagging, and live — including a live `create_workout` round trip using a generic
+  movement_id with a description) so this can't silently regress back to excluding them.
+- **The full raw response is ~700KB; trimmed to the fields this tool actually returns, the
+  full 336-entry catalog is still ~70KB** — too large to hand an LLM unfiltered by default (this
   project's stated design principle: compact, not a dashboard dump). `list_exercises` caps at
   `limit` (default 50) even with no filter, and documents that filters narrow to *relevant*
   results while `limit` alone just truncates an arbitrary slice — pushing callers toward
@@ -283,7 +294,8 @@ list_workouts(limit: int = 25) -> [{id, title, publish_state, duration_min, set_
 get_workout(workout_id: str) -> {id, title, description, publish_state, duration_min, sets: [...]}
 find_movement(name: str) -> [{id, name, on_machine}]  # ranked matches, reusing tonal-garmin-sync's approach
 list_exercises(muscle_group=None, body_region=None, push_pull=None, on_machine=None, query=None, limit=50)
-  -> [{id, name, muscle_groups: [...], body_region, push_pull, family, on_machine, in_free_lift, skill_level}]
+  -> [{id, name, muscle_groups: [...], body_region, push_pull, family, on_machine, in_free_lift,
+       skill_level, is_generic}]  # includes Tonal's freeform/Rest pseudo-movements, flagged not hidden
   # browses Tonal's live catalog (GET /movements) for programming decisions -- see "list_exercises
   # findings" below. Complements find_movement (name -> id) rather than replacing it.
 estimate_workout_duration(sets: [...]) -> {duration_sec}

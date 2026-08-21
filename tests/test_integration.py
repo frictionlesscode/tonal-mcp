@@ -202,21 +202,54 @@ async def test_list_exercises_returns_real_catalog_data(mcp_client: Client):
     assert isinstance(match.skill_level, int)
 
 
-async def test_list_exercises_excludes_generic_movements_live(mcp_client: Client):
+async def test_list_exercises_includes_generic_movements_flagged_live(mcp_client: Client):
     # "Handle Move" is Tonal's freeform/improvised-movement slot (isGeneric)
-    # -- confirmed live it exists in the raw catalog; list_exercises should
-    # never surface it as something to program into a workout.
+    # -- a real, programmable movement_id (confirmed live below), not
+    # something to hide. An earlier version of this test asserted the
+    # opposite; reversed after being told the exclusion was wrong for a
+    # real use case (programming freeform/improvised work).
     results = (await mcp_client.call_tool("list_exercises", {"query": "Handle Move"})).data
-    assert results == []
+    assert results
+    assert all(r.is_generic is True for r in results)
 
 
-async def test_list_exercises_excludes_rest_pseudo_movement_live(mcp_client: Client):
+async def test_list_exercises_includes_rest_flagged_by_family_live(mcp_client: Client):
     # "Rest" is a real Tonal movement entry (family="Rest") that is NOT
-    # flagged isGeneric -- an isGeneric-only filter misses it. Found live by
-    # re-auditing the full catalog after being asked "are you sure you got
-    # them all" -- this is the regression test for that specific miss.
+    # flagged isGeneric -- included here (also reversed from an earlier
+    # exclude-everything version), distinguishable via family rather than
+    # is_generic since Tonal itself doesn't mark it generic.
     results = (await mcp_client.call_tool("list_exercises", {"query": "Rest"})).data
-    assert all(r.name != "Rest" for r in results)
+    rest = next(r for r in results if r.name == "Rest")
+    assert rest.family == "Rest"
+    assert rest.is_generic is False
+
+
+async def test_create_workout_accepts_generic_movement_with_descriptive_set(mcp_client: Client):
+    # The actual point of surfacing generics: a movement_id whose catalog
+    # name is generic ("Handle Move") combined with a real description on
+    # the SET is how Tonal itself expects freeform work to be named --
+    # confirmed live (this exact pattern is also used in ts-tonal-client's
+    # own create-workout example). Self-contained cleanup (no
+    # throwaway_workout fixture -- that creates an unrelated workout, not
+    # useful here beyond its id, which this test doesn't need).
+    matches = (await mcp_client.call_tool("list_exercises", {"query": "Handle Move", "limit": 1})).data
+    handle_move_id = matches[0].id
+
+    title = f"PYTEST-GENERIC-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    created = (await mcp_client.call_tool("create_workout", {
+        "title": title,
+        "sets": [{
+            "movement_id": handle_move_id, "block_number": 1, "block_start": True,
+            "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+            "prescribed_duration": 30, "description": "Face Pulls",
+        }],
+    })).data
+    try:
+        fetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert fetched.sets[0].movement_id == handle_move_id
+        assert fetched.sets[0].description == "Face Pulls"
+    finally:
+        await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
 
 
 async def test_list_exercises_filters_combine_and_stay_under_limit(mcp_client: Client):

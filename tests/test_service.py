@@ -211,15 +211,25 @@ def test_find_movement_delegates_to_movements_module(monkeypatch):
     assert calls == [("Bench Press", 3)]
 
 
-async def test_list_exercises_excludes_generic_movements():
+async def test_list_exercises_includes_generic_and_rest_movements():
+    # Reversed from an earlier version of this function that excluded them
+    # as "not real exercises" -- wrong for a real use case (programming
+    # rest periods and improvised/freeform work with a descriptive
+    # set.description). Both are real, usable movement_ids -- confirmed
+    # live that create_workout accepts them -- so list_exercises surfaces
+    # them, flagged via is_generic/family rather than hidden.
     results = await service.list_exercises()
     names = {r["name"] for r in results}
-    assert "Handle Move" not in names  # isGeneric -- a freeform slot, not a real exercise
-    # "Rest" isn't isGeneric -- a naive "just check isGeneric" filter misses
-    # it (this was a real bug, found by re-auditing). Excluded by family
-    # instead; exact-set assertion below fails if either exclusion regresses.
-    assert "Rest" not in names
-    assert names == {"Barbell Bench Press", "Seated Row", "Plank"}
+    assert names == {"Barbell Bench Press", "Seated Row", "Plank", "Handle Move", "Rest"}
+
+    handle_move = next(r for r in results if r["name"] == "Handle Move")
+    assert handle_move["is_generic"] is True
+    rest = next(r for r in results if r["name"] == "Rest")
+    assert rest["family"] == "Rest"
+    assert rest["is_generic"] is False  # Rest isn't Tonal's isGeneric flag -- family says it instead
+
+    bench = next(r for r in results if r["name"] == "Barbell Bench Press")
+    assert bench["is_generic"] is False
 
 
 async def test_list_exercises_converts_shape():
@@ -229,6 +239,7 @@ async def test_list_exercises_converts_shape():
         "muscle_groups": ["Chest", "Triceps"], "body_region": "UpperBody",
         "push_pull": "Push", "family": "BenchPress",
         "on_machine": True, "in_free_lift": True, "skill_level": 2,
+        "is_generic": False,
     }]
 
 
@@ -249,7 +260,9 @@ async def test_list_exercises_filters_by_push_pull():
 
 async def test_list_exercises_filters_by_on_machine():
     results = await service.list_exercises(on_machine=False)
-    assert [r["name"] for r in results] == ["Plank"]
+    # "Rest" is also onMachine=False in real Tonal data (and in the fixture)
+    # -- it stays included since list_exercises no longer hides it.
+    assert {r["name"] for r in results} == {"Plank", "Rest"}
 
 
 async def test_list_exercises_combines_filters_with_and():

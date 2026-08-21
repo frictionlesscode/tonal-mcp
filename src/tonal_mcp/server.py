@@ -101,24 +101,34 @@ async def list_exercises(
     query: str | None = None,
     limit: int = 50,
 ) -> list[MovementCatalogEntry]:
-    """Browse Tonal's full exercise catalog to choose movements when
-    programming a workout -- use this to decide WHAT to do (e.g. "what push
-    movements hit chest"); use find_movement once you already know the name
-    and just need its movement_id. Filters are optional and combine with
-    AND. muscle_group matches case-insensitively against each movement's
-    muscle group list (e.g. "chest", "triceps", "abs" -- Tonal classifies
+    """Browse Tonal's full exercise catalog (336 entries, everything Tonal
+    returns -- see is_generic below) to choose movements when programming a
+    workout -- use this to decide WHAT to do (e.g. "what push movements hit
+    chest"); use find_movement once you already know the name and just
+    need its movement_id. Filters are optional and combine with AND.
+    muscle_group matches case-insensitively against each movement's muscle
+    group list (e.g. "chest", "triceps", "abs" -- Tonal classifies
     per-movement, check a few real entries for the vocabulary rather than
     guessing). body_region is one of 'UpperBody'/'LowerBody'/'Core' (many
     movements are '' -- unclassified, not a 4th region). push_pull is
     'Push'/'Pull' (also frequently '' -- most core/isolation/mobility moves
     aren't classified either way, this isn't a data gap to work around).
     query is a substring match on name. Without any filter this still caps
-    at `limit` (default 50) rather than returning the full ~323-entry
-    catalog -- pass filters to narrow what you actually need, not limit
-    alone, since limit truncates an arbitrary slice rather than the most
-    relevant one. Cached in-process after the first call within this
-    server's lifetime; Tonal's catalog changes rarely enough that a
-    restart-to-refresh tradeoff is the right one here."""
+    at `limit` (default 50) rather than returning the full catalog -- pass
+    filters to narrow what you actually need, not limit alone, since limit
+    truncates an arbitrary slice rather than the most relevant one. Cached
+    in-process after the first call within this server's lifetime; Tonal's
+    catalog changes rarely enough that a restart-to-refresh tradeoff is the
+    right one here.
+
+    is_generic=True entries ("Handle Move", "Rope Move", "Bar Move", "Ankle
+    Strap Move" -- 3 near-identical movement_ids each, real Tonal duplicates,
+    not a bug here) are Tonal's freeform/improvised-movement slots: real,
+    usable movement_ids, but the name doesn't describe the exercise -- name
+    it via the SET's own `description` field when you use one (see SetIn).
+    A movement with family == "Rest" is Tonal's own rest-period entry, also
+    real and usable the same way (no description needed for it, but one is
+    allowed) -- program a rest block between working sets by using it."""
     return await service.list_exercises(
         muscle_group=muscle_group, body_region=body_region, push_pull=push_pull,
         on_machine=on_machine, query=query, limit=limit,
@@ -135,13 +145,17 @@ async def estimate_workout_duration(sets: list[SetIn]) -> EstimateResult:
 @mcp.tool
 async def create_workout(title: str, sets: list[SetIn], description: str = "") -> WriteResult:
     """Create a new custom Tonal workout. Each set needs a movement_id (see
-    find_movement) and exactly one of prescribed_reps/prescribed_duration --
-    which one a given movement requires varies and isn't guessable up front,
-    so a wrong choice comes back as Tonal's own error message (e.g.
-    "<movement> programmed as reps but must be duration") rather than being
-    silently coerced. weight_percentage defaults to 100 if omitted; what it
-    resolves to is per-movement/per-user and is set live on the machine, not
-    something this tool can predict."""
+    find_movement/list_exercises) and exactly one of prescribed_reps/
+    prescribed_duration -- which one a given movement requires varies and
+    isn't guessable up front, so a wrong choice comes back as Tonal's own
+    error message (e.g. "<movement> programmed as reps but must be
+    duration") rather than being silently coerced. weight_percentage
+    defaults to 100 if omitted; what it resolves to is per-movement/per-user
+    and is set live on the machine, not something this tool can predict.
+    Rest periods and improvised/freeform work are both real, programmable
+    sets here too -- see list_exercises' is_generic/family=="Rest" notes
+    and SetIn's own docstring for how to name a freeform set via its
+    `description` (confirmed live, not just documented behavior)."""
     return await service.create_workout(title, sets, description=description)
 
 

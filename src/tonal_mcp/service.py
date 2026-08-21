@@ -128,25 +128,24 @@ def _to_catalog_entry(raw: dict[str, Any]) -> MovementCatalogEntry:
         on_machine=raw.get("onMachine", False),
         in_free_lift=raw.get("inFreeLift", False),
         skill_level=raw.get("skillLevel", 0),
+        is_generic=bool(raw.get("isGeneric")),
     )
 
 
 async def _get_exercise_catalog() -> list[dict[str, Any]]:
+    # Deliberately includes everything Tonal returns -- Tonal's "generic"/
+    # freeform movements ("Handle Move", "Rope Move", "Bar Move", "Ankle
+    # Strap Move") and the "Rest" pseudo-movement are real, programmable
+    # movement_ids (confirmed live: create_workout accepts both, and Tonal
+    # stores a custom description against a generic movement exactly as
+    # sent -- see models.py's SetIn docstring). An earlier version of this
+    # function excluded them as "not real exercises"; that was wrong for a
+    # real use case (programming rest periods and improvised/freeform work)
+    # and got walked back. is_generic on each entry is the signal for
+    # "needs a descriptive set.description," not a reason to hide it.
     global _exercise_catalog
     if _exercise_catalog is None:
-        raw = await _get_client().get_movements()
-        # Two kinds of non-exercise entry to exclude, confirmed live (SPEC.md):
-        # - Tonal's "generic"/freeform movements (isGeneric=True, e.g. "Handle
-        #   Move") -- improvised-movement slots, not real exercises.
-        # - The single "Rest" pseudo-movement (family="Rest", isGeneric=False
-        #   -- NOT caught by the isGeneric check alone; missed in the first
-        #   version of this filter, found by re-auditing after being asked
-        #   "are you sure you got them all"). Identified by family rather
-        #   than name/id pattern-matching since family is a controlled field,
-        #   not fragile string heuristics.
-        _exercise_catalog = [
-            m for m in raw if not m.get("isGeneric") and m.get("family") != "Rest"
-        ]
+        _exercise_catalog = await _get_client().get_movements()
     return _exercise_catalog
 
 

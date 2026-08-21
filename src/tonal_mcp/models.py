@@ -11,6 +11,13 @@ class SetIn(TypedDict):
     requires varies (see SPEC.md's M1 finding) and isn't guessable in
     advance, so a wrong choice surfaces as Tonal's own 400 rather than being
     silently coerced here.
+
+    For a movement_id whose catalog entry has is_generic=True (Tonal's
+    freeform "Handle Move"/"Rope Move"/"Bar Move"/"Ankle Strap Move" slots
+    -- see list_exercises), the movement's own name doesn't describe the
+    exercise -- set `description` to what's actually being done (e.g.
+    "Face Pulls"). Confirmed live: Tonal stores and returns the description
+    exactly as sent.
     """
 
     movement_id: str
@@ -89,6 +96,16 @@ class MovementCatalogEntry(TypedDict):
     on_machine: bool
     in_free_lift: bool
     skill_level: int
+    # True for Tonal's freeform/improvised-movement slots ("Handle Move",
+    # "Rope Move", "Bar Move", "Ankle Strap Move" -- Tonal's own isGeneric
+    # field). These are real, usable movement_ids -- confirmed live, see
+    # SPEC.md -- but the name itself doesn't describe the exercise. Set the
+    # SET's own `description` field (in create_workout/update_workout) to
+    # say what's actually being done, e.g. movement_id for "Handle Move" +
+    # description="Face Pulls". A movement with family == "Rest" is Tonal's
+    # own rest-period entry -- also a real, usable movement_id, no
+    # description needed (but one is allowed).
+    is_generic: bool
 
 
 class EstimateResult(TypedDict):
