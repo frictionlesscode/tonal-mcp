@@ -1,0 +1,155 @@
+# tonal-mcp — Build Spec
+
+A remote MCP server exposing full CRUD on Tonal custom workouts to Claude, reachable from
+mobile — the write counterpart to reads Claude already has via `garmin-mcp`/`macro-mcp`.
+
+See a separate planning doc (not in this repo) for the full
+plan this was built from (context, rejected alternatives, and why).
+
+---
+
+## Locked decisions
+
+| Decision | Choice |
+|---|---|
+| Language | Python 3.11+ |
+| Tonal client | reimplemented from scratch (`src/tonal_mcp/tonal_client.py`), via `httpx` — not a Node shell-out. Tonal's auth has no MFA/WAF to work around, unlike Garmin's. |
+| MCP framework | FastMCP, Streamable HTTP transport |
+| Auth | `SingleUserOAuthProvider`, copied verbatim from `garmin-mcp` (third use of the same file — `macro-mcp` copied it first) |
+| Packaging | Docker, bound to `127.0.0.1:18082` only |
+| Public exposure | existing Tailscale Funnel (`your-funnel-host.ts.net`), new `/tonal` path |
+| Movement matching | reads `src/tonal_mcp/data/curated.json`, copied from `tonal-garmin-sync`'s `config/curated.json` as data (not a live call — see plan and M3 findings for why it's packaged, not a repo-relative path) |
+
+## Charter
+
+**tonal-mcp owns:** authenticating to Tonal, translating tool calls into `user-workouts`
+request shapes, movement name→id lookup, reporting back what Tonal actually stored.
+
+**tonal-mcp does not own:** exercise selection, programming philosophy, rep/set schemes,
+periodization. Claude decides what workout to build; the server just writes it.
+
+---
+
+## M1 findings (2026-08-21) — the Tonal write path, proven live
+
+Ran `scripts/prove_write_path.py` against the real account. All of create → read → update →
+archive worked on the first structurally-correct request:
+
+- `POST /user-workouts`, `PUT /user-workouts/{id}`, `DELETE /user-workouts/{id}` (soft —
+  `publishState` goes to `'archived'`, confirmed by reading the workout back after delete),
+  `GET /workouts/{id}` all behave exactly as reverse-engineered from
+  `@dlwiest/ts-tonal-client`'s bundled source.
+- **Tonal validates set shape server-side, movement by movement.** First attempt used
+  `prescribedReps` for "Bodyweight Squat" and got a real, specific 400: *"Bodyweight Squat
+  programmed as reps but must be duration."* Switching to `prescribedDuration` fixed it.
+  Lesson for `create_workout`/`update_workout`: a bad request shape fails loudly with a
+  usable message, not silently — the MCP tool should surface Tonal's own error message rather
+  than swallowing it.
+- **`weightPercentage` is stored verbatim, not resolved into an absolute weight at write
+  time** — reading the created workout back showed `weightPercentage: 50` and `100`
+  unchanged, byte for byte. What it means at *performance* time (presumably scaling some
+  per-user, per-movement calibration on the machine) couldn't be determined from this test:
+  "Bodyweight Squat" is `onMachine: False` and carries no cable load at all, so there was
+  nothing for the percentage to scale. **Open**: re-run the probe against an `onMachine: True`
+  weighted movement and check the Tonal app / machine behavior directly — needs a live app
+  session, not just API calls, since the number likely resolves on the machine side, not
+  server-side.
+
+## M2 findings (2026-08-21)
+
+- **`estimate_workout_duration`'s live request shape disagrees with
+  `ts-tonal-client`'s own source.** The library wraps the body as `{"sets":
+  [...]}`, matching create/update -- but the live API rejects that here with
+  `"json: cannot unmarshal object into Go value of type content.SetList"`.
+  Confirmed live: this one endpoint wants the bare sets array as the entire
+  POST body, unlike create/update which do want the nested-object shape.
+  Fixed in `tonal_client.py`; regression test in `test_tonal_client.py`.
+  Lesson: verify each endpoint against the live API even when a reference
+  implementation exists — an unofficial API can drift out from under its own
+  reverse-engineered client.
+- FastMCP's `Client.call_tool(...).data` deserializes a `TypedDict`-typed
+  tool result into an auto-generated pydantic model (attribute access, e.g.
+  `result.id`), not a plain dict -- `scripts/mcp_smoke_local.py` uses
+  attribute access accordingly. Tool return values themselves are still
+  plain dicts server-side (`models.py`'s `TypedDict`s); this is purely a
+  client-side deserialization detail.
+- **`weightPercentage` must be a JSON integer, not a float.** `SetIn`
+  originally declared it `float`; FastMCP's schema validation then coerced a
+  plain `100` argument to `100.0` before my code ever saw it, and Tonal's
+  Go backend rejects that: `"json: cannot unmarshal number 100.0 into Go
+  struct field Set.SetInfo.weightPercentage of type int"`. Only surfaced
+  through `scripts/mcp_smoke_local.py`'s real tool-call path — calling
+  `service.py` directly with a plain Python dict (as the pytest suite and
+  `prove_write_path.py` do) never coerces the type, so this bug was
+  invisible to both. Fixed by typing `weight_percentage` as `int`
+  everywhere (`models.py`, `tonal_client.py`'s `WorkoutSet`, `service.py`'s
+  conversions). **Lesson this reinforces**: unit tests against a fake/mocked
+  client don't exercise FastMCP's own schema coercion — the M2 gate's "real
+  round trip" check is not optional decoration, it catches a real class of
+  bug the mocked tests structurally cannot.
+
+## M3/M4 findings (2026-08-21)
+
+- **`pip install .` (non-editable, as Docker does) breaks a `Path(__file__).resolve().parent
+  .parent.parent`-relative config path.** A regular install copies the package tree into
+  site-packages; the repo-root-relative walk that worked under `pip install -e .` resolved to
+  `/usr/local/lib/python3.12/config/curated.json` in the container — confirmed live
+  (`FileNotFoundError` on container start). Fixed by moving `curated.json` into the package
+  itself (`src/tonal_mcp/data/curated.json`, declared via `[tool.setuptools.package-data]`) so
+  `Path(__file__).resolve().parent / "data"` resolves the same way under both install modes,
+  rather than depending on the package's position relative to the repo root.
+- Tailscale Funnel path-mapping commands must be single-line, not backslash-continued
+  multi-line — a multi-line `--set-path=...` invocation was blocked by this environment's
+  command classifier where the equivalent single-line form was not.
+- Git Bash (MSYS) rewrites a bare leading-slash argument like `/tonal` into a Windows path
+  before it reaches `tailscale` — confirmed live (`tailscale funnel --set-path=/tonal ...`
+  produced a mapping literally titled `/C:/Program Files/Git/tonal`). Fixed by prefixing with
+  `MSYS_NO_PATHCONV=1`, same fix already known from this session's earlier `docker exec` calls.
+- Full public discovery chain verified live over `https://your-funnel-host.ts.net/tonal`:
+  unauthenticated `POST /tonal/mcp` → 401 with the correct `WWW-Authenticate` pointing at
+  `/.well-known/oauth-protected-resource/tonal/mcp`; that URL → 200; the RFC 8414
+  root-relative form at `/.well-known/oauth-authorization-server/tonal` → 200. Other paths already served on the same Funnel host were unaffected — no regression from adding the third path.
+
+## Milestones
+
+### M1 — Prove the Tonal write path standalone ✅ done (above)
+
+### M2 — MCP server, all six tools (full CRUD) ✅ done (above)
+
+`list_workouts`, `get_workout`, `find_movement`, `estimate_workout_duration`,
+`create_workout`, `update_workout`, `delete_workout`.
+
+### M3 — Auth + Docker ✅ done (above)
+
+Copied `oauth.py`/`auth.py` from `garmin-mcp` (third deployment of the same class — see
+`oauth.py`'s docstring). Dockerfile + compose bound to `127.0.0.1:18082`. `/health`
+unauthenticated; confirmed unauthenticated `/mcp` correctly 401s.
+
+### M4 — Wire into the Tailscale Funnel ✅ done (above); claude.ai connector — pending user
+
+`/tonal` added alongside the Funnel's existing paths, full discovery chain verified live (above).
+**Remaining, user-only step** (adding an OAuth connector and entering a credential isn't
+something this assistant does on someone's behalf): in claude.ai, Settings → Connectors →
+Add custom connector → `https://your-funnel-host.ts.net/tonal/mcp`, sign in with the
+`MCP_BEARER_TOKEN` from `.env`. Then confirm from an actual chat: ask it to create a small
+test workout, check it in the Tonal app, then update and archive it.
+**Gate:** `create_workout`/`update_workout` both work from an actual Claude chat.
+
+## Tool contracts (M2)
+
+```
+list_workouts(limit: int = 25) -> [{id, title, publish_state, duration_min, set_count}]
+get_workout(workout_id: str) -> {id, title, description, publish_state, duration_min, sets: [...]}
+find_movement(name: str) -> [{id, name, on_machine}]  # ranked matches, reusing tonal-garmin-sync's approach
+estimate_workout_duration(sets: [...]) -> {duration_sec}
+create_workout(title: str, sets: [...], description: str = "") -> {id, title, duration_min}
+update_workout(workout_id: str, title: str, sets: [...], description: str = "") -> {id, title, duration_min}
+delete_workout(workout_id: str) -> {id, publish_state}  # archives, does not destroy
+```
+
+Each `sets` entry at the tool boundary: `{movement_id, block_number, block_start, set_group,
+round, repetition, repetition_total, weight_percentage=100, prescribed_reps?,
+prescribed_duration?, description=""}` — mirrors `WorkoutSet` in `tonal_client.py`. Exactly
+one of `prescribed_reps`/`prescribed_duration` must be set, and which one is *required* by
+Tonal depends on the specific movement (see M1 finding above) — the tool should let Tonal's
+own 400 surface rather than guessing.

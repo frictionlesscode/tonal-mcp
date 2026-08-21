@@ -1,0 +1,2039 @@
+[
+  {
+    "movementId": "eb067021-46de-433c-9262-deea70debde2",
+    "name": "Alternating Bench Press",
+    "exerciseName": "alternatingDumbbellChestPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "c9afad76-751b-4f7a-99b7-6b5dc09d3901",
+    "name": "Barbell Bench Press",
+    "exerciseName": "barbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "8edc0211-4594-4e5e-8e1b-b05dfc1d67c7",
+    "name": "Bench Press",
+    "exerciseName": "dumbbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "3b3f0628-37ce-4985-ab71-8ae10141ed98",
+    "name": "Close Grip Barbell Bench Press",
+    "exerciseName": "closeGripBarbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "8e82d264-dc5b-4ff1-8548-5a75142cb442",
+    "name": "Inline Chest Press",
+    "exerciseName": "singleArmCableChestPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "656d4ed1-df6b-48bf-9c6d-9e5a40ffb269",
+    "name": "Single-Arm Bench Press",
+    "exerciseName": "singleArmDumbbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "327a3b0b-f58f-4eb2-a552-ac31acf27a2d",
+    "name": "Single-Leg Standing Chest Press",
+    "exerciseName": "singleArmCableChestPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "ce9f5bf6-df1f-430b-a69e-89b455664b53",
+    "name": "Standing Chest Press",
+    "exerciseName": "dumbbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "fed3841a-f6a4-4bb0-a8b6-ee3bdd69edc6",
+    "name": "Standing Decline Chest Press",
+    "exerciseName": "dumbbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "5d0936a8-2d9f-46f3-8d42-8e39a8781198",
+    "name": "Standing Incline Press",
+    "exerciseName": "inclineDumbbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "408611a4-684c-4fbc-bc7f-215939e854a3",
+    "name": "Tall Kneeling Single-Arm Chest Press",
+    "exerciseName": "singleArmCableChestPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "d5fd808e-e883-4109-9371-cbcc727144cf",
+    "name": "Wide Grip Barbell Bench Press",
+    "exerciseName": "wideGripBarbellBenchPress",
+    "categoryHint": "benchPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "36df9b2c-629e-4b62-9361-d64272c71215",
+    "name": "Bent Knee Calf Raise",
+    "exerciseName": "standingCalfRaise",
+    "categoryHint": "calfRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "ed6c90eb-1f46-4860-b424-4934bc183526",
+    "name": "Bodyweight Squat to Bench with Calf Raise",
+    "exerciseName": "airSquat",
+    "categoryHint": "calfRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "e0082382-1b10-48cd-9393-e57fa9b98e6c",
+    "name": "Bodyweight Squat to Calf Raise",
+    "exerciseName": "airSquat",
+    "categoryHint": "calfRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "46fd7421-c0f3-4d92-9488-27471a4097c7",
+    "name": "Resisted Calf Raise",
+    "exerciseName": "standingDumbbellCalfRaise",
+    "categoryHint": "calfRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "1ade96ac-867d-4c84-a5ac-ce6b674989ad",
+    "name": "Butt Kicker",
+    "exerciseName": "marchingInPlace",
+    "categoryHint": "cardio",
+    "onMachine": false
+  },
+  {
+    "movementId": "8740b27c-1a7f-4b7b-888b-b1bc7b5ca6b1",
+    "name": "Heisman Shuffle",
+    "exerciseName": "sideToSideShuffleJump",
+    "categoryHint": "cardio",
+    "onMachine": false
+  },
+  {
+    "movementId": "f8516030-50ee-4a65-baed-15b38d1ce63e",
+    "name": "High Knee",
+    "exerciseName": "marchingInPlace",
+    "categoryHint": "cardio",
+    "onMachine": false
+  },
+  {
+    "movementId": "de6a9c09-dd23-4a00-916b-11d6b75642e9",
+    "name": "Jumping Jack",
+    "exerciseName": "jumpingJacks",
+    "categoryHint": "cardio",
+    "onMachine": false
+  },
+  {
+    "movementId": "0720ba8b-e731-4022-b0d9-ff741e266c39",
+    "name": "Skater Bound",
+    "exerciseName": "lateralLeapAndHop",
+    "categoryHint": "cardio",
+    "onMachine": false
+  },
+  {
+    "movementId": "447fde5d-16c6-4b22-8c2a-394a1a828b86",
+    "name": "Standing Bicycle",
+    "exerciseName": "bicycleCrunch",
+    "categoryHint": "cardio",
+    "onMachine": false
+  },
+  {
+    "movementId": "b11f89b0-5470-44a2-b70a-5391e972eb71",
+    "name": "Farmer March",
+    "exerciseName": "farmersCarry",
+    "categoryHint": "carry",
+    "onMachine": true
+  },
+  {
+    "movementId": "2e98a197-beea-4c29-afe6-5e8b9f27ca6e",
+    "name": "Suitcase March",
+    "exerciseName": "farmersCarry",
+    "categoryHint": "carry",
+    "onMachine": true
+  },
+  {
+    "movementId": "ac8db33c-898a-45a7-90e9-c1cc671b42db",
+    "name": "Waiter March",
+    "exerciseName": "dumbbellWaiterCarry",
+    "categoryHint": "carry",
+    "onMachine": true
+  },
+  {
+    "movementId": "1ccf6cfe-26a5-4f9a-96be-0dab6b5f96f5",
+    "name": "Half Kneeling Chop",
+    "exerciseName": "halfKneelingStabilityChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "56b1c9b5-8240-4f2d-aa92-badc0dd62176",
+    "name": "Half Kneeling Lift",
+    "exerciseName": "halfKneelingStabilityReverseChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "6f306d4c-897a-49d3-b300-0a07de26bc0c",
+    "name": "Half Kneeling Pallof Press",
+    "exerciseName": "halfKneelingRotation",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "ca4839e2-8f10-47a2-97d8-808ea80f9288",
+    "name": "Half Kneeling Vertical Push-Pull",
+    "exerciseName": "oneArmPushPress",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "e990622a-b138-4283-9475-7201ddb9edd4",
+    "name": "Inline Chop",
+    "exerciseName": "halfKneelingStabilityChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "b62564d5-f986-4a75-afc5-1bf2d3d7c3c1",
+    "name": "Inline Lift",
+    "exerciseName": "cableRotationalLift",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "f227965f-12fc-4d6a-8e80-5cf624e69e86",
+    "name": "Pull Through",
+    "exerciseName": "cablePullThrough",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "329bc87e-d7a2-47f4-9a65-fd19cf24b144",
+    "name": "Rotational Chop",
+    "exerciseName": "standingRotationalChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "d9b1c1a7-4809-475a-b28b-565069c46452",
+    "name": "Rotational Lift",
+    "exerciseName": "standingStabilityReverseChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "ee792812-174b-4d87-bdfe-be33f1fa5e23",
+    "name": "Seated Pallof Press",
+    "exerciseName": "halfKneelingRotation",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "70bc255e-0662-44bc-b632-dd093f7ae7a9",
+    "name": "Single-Arm Rotational Punch",
+    "exerciseName": "cableCorePress",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "b935c139-fd87-49bb-b83e-f38a33494a02",
+    "name": "Single-Leg Chop",
+    "exerciseName": "standingRotationalChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "15acaa71-011b-4dc1-b932-1b3d00c1115b",
+    "name": "Single-Leg Pallof Press",
+    "exerciseName": "halfKneelingRotation",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "fbc2ac0a-3051-458b-9c76-0f4c3093400e",
+    "name": "Standing Alternating Push-Pull",
+    "exerciseName": "singleArmCableChestPress",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "596e7a05-1086-4045-84fb-2b8a2edc88dd",
+    "name": "Standing Chop",
+    "exerciseName": "standingRotationalChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "12d4e320-fc8a-43cd-842c-5934b4bba3c8",
+    "name": "Standing Lift",
+    "exerciseName": "standingStabilityReverseChop",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "ea30d4b4-4b45-4dc6-a4ee-1b8a85eb88f9",
+    "name": "Standing Pallof Press",
+    "exerciseName": "halfKneelingRotation",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "40244ea9-22a6-4112-86c8-662aaa2da058",
+    "name": "Tall Kneeling Pallof Press",
+    "exerciseName": "halfKneelingRotation",
+    "categoryHint": "chop",
+    "onMachine": true
+  },
+  {
+    "movementId": "a8468ca2-8951-4a99-a298-4eb8adb9a3b4",
+    "name": "Barbell Straight Arm March",
+    "exerciseName": "straightArmPulldown",
+    "categoryHint": "core",
+    "onMachine": true
+  },
+  {
+    "movementId": "6463dfb7-0bf5-474e-8ce1-93460346361c",
+    "name": "Bent Hollow Rocking",
+    "exerciseName": "hollowRock",
+    "categoryHint": "core",
+    "onMachine": false
+  },
+  {
+    "movementId": "4b6c5ef1-ef10-437e-8aa3-835bc8ecfc8e",
+    "name": "Dead Bug",
+    "exerciseName": "deadBug",
+    "categoryHint": "core",
+    "onMachine": false
+  },
+  {
+    "movementId": "7656bbe3-3333-4a57-8d44-09e6b70be19f",
+    "name": "Half Turkish Get-Up",
+    "exerciseName": "halfTurkishGetUp",
+    "categoryHint": "core",
+    "onMachine": true
+  },
+  {
+    "movementId": "d45ce363-e14c-4442-9061-d75e5a6ff4f9",
+    "name": "Hollow Body Rocking",
+    "exerciseName": "hollowRock",
+    "categoryHint": "core",
+    "onMachine": false
+  },
+  {
+    "movementId": "926ba82f-8b50-4c59-ac8f-87ae81732f47",
+    "name": "Resisted Dead Bug",
+    "exerciseName": "weightedDeadBug",
+    "categoryHint": "core",
+    "onMachine": true
+  },
+  {
+    "movementId": "e35a0d48-3858-41f2-b39b-97b12638da82",
+    "name": "Single-Leg Dead Bug",
+    "exerciseName": "deadBug",
+    "categoryHint": "core",
+    "onMachine": false
+  },
+  {
+    "movementId": "41934390-f413-4df3-a350-61c6b116abea",
+    "name": "Crunch",
+    "exerciseName": "crunch",
+    "categoryHint": "crunch",
+    "onMachine": false
+  },
+  {
+    "movementId": "cdbed252-5ddb-4106-9180-d535df59f52e",
+    "name": "Pullover Crunch",
+    "exerciseName": "cableCrunch",
+    "categoryHint": "crunch",
+    "onMachine": true
+  },
+  {
+    "movementId": "1412cb4d-c8b1-4aa3-bc66-3cfe2d5f5ba7",
+    "name": "Seated Cable Crunch",
+    "exerciseName": "cableCrunch",
+    "categoryHint": "crunch",
+    "onMachine": true
+  },
+  {
+    "movementId": "52f0a534-f53b-46bf-a65f-8c0e19b316f2",
+    "name": "Seated Oblique Cable Crunch",
+    "exerciseName": "kneelingObliqueCableCrunch",
+    "categoryHint": "crunch",
+    "onMachine": true
+  },
+  {
+    "movementId": "a0fab5e9-8413-4114-b7d5-10bb526a8279",
+    "name": "Sprinter Crunch",
+    "exerciseName": "bicycleCrunch",
+    "categoryHint": "crunch",
+    "onMachine": false
+  },
+  {
+    "movementId": "92eb9caf-b1ea-4b3c-94ec-7d5e5fb1f476",
+    "name": "Alternating Biceps Curl",
+    "exerciseName": "alternatingDumbbellBicepsCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "0b5e580d-f813-4f4e-81ae-2ed559f88a93",
+    "name": "Barbell Biceps Curl",
+    "exerciseName": "barbellBicepsCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "dffe549f-179e-4cae-b43e-9a4af6cb1bc7",
+    "name": "Biceps Curl",
+    "exerciseName": "dumbbellBicepsCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "2cb2b3f2-ff44-49f6-9938-915295db1e82",
+    "name": "Hammer Curl",
+    "exerciseName": "dumbbellHammerCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "af1785f9-cd7b-4725-ba56-3ea4eae038c2",
+    "name": "Lying Biceps Curl",
+    "exerciseName": "preacherCurlWithCable",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "6b526e88-90a3-4724-931c-f667e2add45c",
+    "name": "Lying Face Curl",
+    "exerciseName": "lyingConcentrationCableCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "bbf70900-fc6f-4057-86fb-34e0dd0f328f",
+    "name": "Reverse Grip Barbell Biceps Curl",
+    "exerciseName": "reverseGripBarbellBicepsCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "4172950f-6e31-4f42-be04-45f2ca641d21",
+    "name": "Reverse Grip Biceps Curl",
+    "exerciseName": "seatedReverseDumbbellCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "fed85293-b564-429c-b9be-9d52c2da5e75",
+    "name": "Reverse Nordic Curl",
+    "exerciseName": "legExtensions",
+    "categoryHint": "curl",
+    "onMachine": false
+  },
+  {
+    "movementId": "a136ca01-f0d8-46ed-a4e1-9e94c457422e",
+    "name": "Seated Alternating Biceps Curl",
+    "exerciseName": "seatedAlternatingDumbbellBicepsCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "65ebd242-b9d3-405d-9922-0c6e3df0ce22",
+    "name": "Seated Biceps Curl",
+    "exerciseName": "seatedDumbbellBicepsCurl",
+    "categoryHint": "curl",
+    "onMachine": true
+  },
+  {
+    "movementId": "c4f3f895-61c4-4916-9e11-6f3ec68e8dba",
+    "name": "Barbell Deadlift",
+    "exerciseName": "barbellDeadlift",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "ef5f1802-a99e-4e56-b473-32bbf353fb73",
+    "name": "Barbell RDL",
+    "exerciseName": "romanianDeadlift",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "2815c323-5b94-47f2-b946-3b10af26d02b",
+    "name": "Barbell Single-Leg RDL",
+    "exerciseName": "singleLegRomanianDeadliftWithDumbbell",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "7f71d0b7-43ba-4f06-b47c-3527a6421432",
+    "name": "Barbell Sumo Deadlift",
+    "exerciseName": "sumoDeadlift",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "391cc5b7-5074-4e88-b9d9-098231476a15",
+    "name": "Bodyweight Single-Leg RDL",
+    "exerciseName": "singleLegRdlCircuit",
+    "categoryHint": "deadlift",
+    "onMachine": false
+  },
+  {
+    "movementId": "a9756142-cce9-4720-ba97-2a84a1cf865b",
+    "name": "Neutral Grip Deadlift",
+    "exerciseName": "trapBarDeadlift",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "b551d374-8525-4528-be61-7fc828c9ce58",
+    "name": "RDL",
+    "exerciseName": "romanianDeadlift",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "d02af998-53da-4042-8441-2f6f7c22b8b0",
+    "name": "Single-Arm Deadlift",
+    "exerciseName": "singleArmDeadlift",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "5276eb41-fd52-4d32-8e25-033f2b2a7d1c",
+    "name": "Single-Arm Single-Leg RDL",
+    "exerciseName": "singleLegRdlCircuit",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "465987e9-92f2-4c8e-9df8-890e1355f3c6",
+    "name": "Single-Leg RDL",
+    "exerciseName": "singleLegRdlCircuit",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "0cbe3d68-2026-41fe-a2fc-a598f7dc0b2c",
+    "name": "Suitcase Deadlift",
+    "exerciseName": "singleArmDeadlift",
+    "categoryHint": "deadlift",
+    "onMachine": true
+  },
+  {
+    "movementId": "03c61400-a790-4fa9-bd34-961500820437",
+    "name": "Bench Chest Fly",
+    "exerciseName": "dumbbellFlye",
+    "categoryHint": "flye",
+    "onMachine": true
+  },
+  {
+    "movementId": "f4d78bdf-f70c-4f3c-bccb-78e9ff80f9fb",
+    "name": "Decline Chest Fly",
+    "exerciseName": "declineDumbbellFlye",
+    "categoryHint": "flye",
+    "onMachine": true
+  },
+  {
+    "movementId": "f99ab88a-190a-42bb-b145-298b83b39233",
+    "name": "Incline Chest Fly",
+    "exerciseName": "inclineDumbbellFlye",
+    "categoryHint": "flye",
+    "onMachine": true
+  },
+  {
+    "movementId": "e12dd59c-f1c3-4e2d-bc54-593863b643d0",
+    "name": "Middle Chest Fly",
+    "exerciseName": "dumbbellFlye",
+    "categoryHint": "flye",
+    "onMachine": true
+  },
+  {
+    "movementId": "b5734d70-a131-4f7e-8553-8f4874d858e6",
+    "name": "Reverse Fly",
+    "exerciseName": "rearDeltFlyWheelchair",
+    "categoryHint": "flye",
+    "onMachine": true
+  },
+  {
+    "movementId": "f46db1df-b6eb-4a37-b34b-74b7ea2826da",
+    "name": "Single-Arm Decline Chest Fly",
+    "exerciseName": "declineDumbbellFlye",
+    "categoryHint": "flye",
+    "onMachine": true
+  },
+  {
+    "movementId": "c4c247a4-20d5-4cf7-8fec-9548c8a68a8f",
+    "name": "Single-Arm Incline Chest Fly",
+    "exerciseName": "inclineDumbbellFlye",
+    "categoryHint": "flye",
+    "onMachine": true
+  },
+  {
+    "movementId": "d44826e1-f6b3-4bed-9d6f-8456d9cde3ec",
+    "name": "Barbell Hip Thrust",
+    "exerciseName": "barbellHipThrustWithBench",
+    "categoryHint": "hipRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "b686f885-427c-4e64-9aa3-4b485c82678e",
+    "name": "Barbell Lying Glute Bridge",
+    "exerciseName": "barbellHipThrustOnFloor",
+    "categoryHint": "hipRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "d9f6fb59-9bb9-469c-ad65-a9b620535a7d",
+    "name": "Elevated Glute Bridge",
+    "exerciseName": "hipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "636f95b7-1c65-4428-a1a5-14cc0f18c4da",
+    "name": "Elevated Single-Leg Glute Bridge",
+    "exerciseName": "singleLegHipRaiseWithFootOnBench",
+    "categoryHint": "hipRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "d9966062-96ae-43e5-a896-8df13eb31c48",
+    "name": "Glute Bridge",
+    "exerciseName": "hipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "79df9602-0aca-4e39-b9d3-d49b5f76b12f",
+    "name": "Hip Raise",
+    "exerciseName": "hipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "bf0bbda8-9515-46dd-8d82-bd57c0cfb85b",
+    "name": "Marching Glute Bridge",
+    "exerciseName": "marchingHipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "93457225-18db-41bc-974e-e874fb4d07d1",
+    "name": "Resisted Glute Bridge",
+    "exerciseName": "weightedHipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "3f86da6a-6e2c-44fa-8279-d8a361be2d6c",
+    "name": "Resisted Hip Raise",
+    "exerciseName": "weightedHipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "e1f02f99-0117-48e6-8c4c-ddc104630615",
+    "name": "Single-Arm Pullover with Single-Leg Hip Thrust",
+    "exerciseName": "singleLegHipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "4ccc12f5-f15a-4345-8b13-290f5fdb74c1",
+    "name": "Single-Leg Glute Bridge",
+    "exerciseName": "singleLegHipRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "7b635e41-d9d1-475b-b4a6-e2779fce5fb1",
+    "name": "Standing Diagonal Glute Kickback",
+    "exerciseName": "weightedStandingRearLegRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "05b255f5-89a9-4e1c-819d-0bfa7bab2e27",
+    "name": "Standing Straight Leg Glute Kickback",
+    "exerciseName": "weightedStandingRearLegRaise",
+    "categoryHint": "hipRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "ec99fdf6-a953-4d7f-bb46-6ab34b18d4ef",
+    "name": "Clamshell",
+    "exerciseName": "clamShells",
+    "categoryHint": "hipStability",
+    "onMachine": false
+  },
+  {
+    "movementId": "e5bead9c-b3fb-49df-aadd-22f85c4b7ceb",
+    "name": "Donkey Kick",
+    "exerciseName": "donkeyKick",
+    "categoryHint": "hipStability",
+    "onMachine": false
+  },
+  {
+    "movementId": "7ffe4c00-22c3-4673-8e61-5f7299d7728b",
+    "name": "Fire Hydrant",
+    "exerciseName": "fireHydrant",
+    "categoryHint": "hipStability",
+    "onMachine": false
+  },
+  {
+    "movementId": "db8e5581-d56e-4925-bfb2-f47e3b692f4d",
+    "name": "Lateral Walk Out",
+    "exerciseName": "cableCorePress",
+    "categoryHint": "hipStability",
+    "onMachine": true
+  },
+  {
+    "movementId": "daa55e45-1f8a-4c36-93f9-5ddccebf08e6",
+    "name": "Quadruped Donkey Kick",
+    "exerciseName": "donkeyKick",
+    "categoryHint": "hipStability",
+    "onMachine": true
+  },
+  {
+    "movementId": "2d9bf227-a36c-4b97-b1c3-049ffa48a344",
+    "name": "Quadruped Hip Circle",
+    "exerciseName": "hipCircles",
+    "categoryHint": "hipStability",
+    "onMachine": false
+  },
+  {
+    "movementId": "e95446e9-d1f7-4aa3-8e36-b154fa442a9a",
+    "name": "Side Lying Hip Abduction",
+    "exerciseName": "standingCableHipAbduction",
+    "categoryHint": "hipStability",
+    "onMachine": false
+  },
+  {
+    "movementId": "9dd867e1-4304-4d85-b0bb-fcddce573c3c",
+    "name": "Single-Arm Lateral Leg Swing",
+    "exerciseName": "sideLungeSweep",
+    "categoryHint": "hipStability",
+    "onMachine": true
+  },
+  {
+    "movementId": "029ea28e-328b-422e-a410-f1a8fc39c324",
+    "name": "Standing Donkey Kick",
+    "exerciseName": "donkeyKick",
+    "categoryHint": "hipStability",
+    "onMachine": true
+  },
+  {
+    "movementId": "9bb67ac6-735c-4830-b2af-d3c0945892b3",
+    "name": "Standing Hip Abduction",
+    "exerciseName": "standingCableHipAbduction",
+    "categoryHint": "hipStability",
+    "onMachine": true
+  },
+  {
+    "movementId": "3fc96b69-5b05-489c-938e-917f36f03453",
+    "name": "Bench Reverse Hyper",
+    "exerciseName": "bentKneeReverseHyperextension",
+    "categoryHint": "hyperextension",
+    "onMachine": false
+  },
+  {
+    "movementId": "5c740fbf-6d28-4fba-912d-040e4d1c92e1",
+    "name": "Barbell Front Raise",
+    "exerciseName": "frontRaise",
+    "categoryHint": "lateralRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "794e3822-200b-49c0-b722-debf341d4a5d",
+    "name": "Front Raise",
+    "exerciseName": "dumbbellFrontRaise",
+    "categoryHint": "lateralRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "7dad8063-0eba-4cf7-bcd8-9c12e9515be0",
+    "name": "Lateral Raise",
+    "exerciseName": "dumbbellLateralRaise",
+    "categoryHint": "lateralRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "32d2ea05-024b-4b98-95eb-079b9f62864d",
+    "name": "Hamstring Walkout",
+    "exerciseName": "walkout",
+    "categoryHint": "legCurl",
+    "onMachine": false
+  },
+  {
+    "movementId": "7f8ad867-c219-4320-a50d-900e9baabf76",
+    "name": "Lying Hamstring Stretch",
+    "exerciseName": "stretchHamstring",
+    "categoryHint": "legCurl",
+    "onMachine": false
+  },
+  {
+    "movementId": "bb513dfe-19c8-4490-bfc8-d8e71b81b52a",
+    "name": "Prone Bench Hamstring Curl",
+    "exerciseName": "legCurl",
+    "categoryHint": "legCurl",
+    "onMachine": true
+  },
+  {
+    "movementId": "752e2f27-11d5-4758-801d-f030ac5eac7c",
+    "name": "Prone Bench Single-Leg Hamstring Curl",
+    "exerciseName": "legCurl",
+    "categoryHint": "legCurl",
+    "onMachine": true
+  },
+  {
+    "movementId": "27b7f142-837d-4ecf-93dd-7c13269106df",
+    "name": "Standing Single-Leg Hamstring Curl",
+    "exerciseName": "legCurl",
+    "categoryHint": "legCurl",
+    "onMachine": true
+  },
+  {
+    "movementId": "f80654dc-d987-4734-bf8b-b135ef30a7d3",
+    "name": "Barbell Lateral Leg Raise",
+    "exerciseName": "toesToBar",
+    "categoryHint": "legRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "0412672f-7b5a-4367-a032-2216054736a5",
+    "name": "Heel Drop",
+    "exerciseName": "reverseCrunch",
+    "categoryHint": "legRaise",
+    "onMachine": false
+  },
+  {
+    "movementId": "fe132c4a-69bc-427d-8a94-93413709be25",
+    "name": "Resisted Leg Lowering",
+    "exerciseName": "lyingStraightLegRaise",
+    "categoryHint": "legRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "5b5155a1-d1c4-4bf7-8f26-097fc9568cf5",
+    "name": "Resisted Leg Raise",
+    "exerciseName": "lyingStraightLegRaise",
+    "categoryHint": "legRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "7bcf844b-0f88-492b-a018-6f874c80b99a",
+    "name": "Single-Arm Resisted Leg Raise",
+    "exerciseName": "lyingStraightLegRaise",
+    "categoryHint": "legRaise",
+    "onMachine": true
+  },
+  {
+    "movementId": "91b999fa-d906-4785-b128-9c5aebfb22ac",
+    "name": "Alternating Goblet Reverse Lunge",
+    "exerciseName": "dumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "db0df66c-2a8f-4336-bbf5-0f8c3eea544d",
+    "name": "Assisted Reverse Lunge",
+    "exerciseName": "dumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "1b74ca5c-1633-42d3-a9dd-eebc3b505d75",
+    "name": "Barbell Front Racked Reverse Lunge",
+    "exerciseName": "barbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "380f1643-9a10-4ef5-bda3-ef7bde449c57",
+    "name": "Barbell Front Racked Split Squat",
+    "exerciseName": "barbellSplitSquat",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "b018bcad-d146-47e5-9abd-bd7db9cf740a",
+    "name": "Bodyweight Alternating Curtsey Lunge",
+    "exerciseName": "curtsyLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "3d7d0683-aaad-4222-a738-a9ea3dbbd27b",
+    "name": "Bodyweight Alternating Lateral Lunge",
+    "exerciseName": "sideLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "0b8f03ae-b64a-45c5-8443-dd955637777f",
+    "name": "Bodyweight Alternating Reverse Lunge",
+    "exerciseName": "dumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "b930fb0b-f492-47ca-b776-9c53654e345c",
+    "name": "Bodyweight Bulgarian Split Squat",
+    "exerciseName": "dumbbellBulgarianSplitSquat",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "99a561e8-ecf0-423f-848d-7116e8bb1189",
+    "name": "Bodyweight Split Squat",
+    "exerciseName": "dumbbellSplitSquat",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "88135233-36ea-43f4-aee8-1d33f18fe185",
+    "name": "Bulgarian Split Squat",
+    "exerciseName": "dumbbellBulgarianSplitSquat",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "2b1e45e5-1d18-4332-806b-2f833176dffc",
+    "name": "Bulgarian Split Squat with Hip Internal Rotation",
+    "exerciseName": "dumbbellBulgarianSplitSquat",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "8c86cb06-c6bc-4566-a99a-16baf7215789",
+    "name": "Goblet Curtsey Lunge",
+    "exerciseName": "weightedCurtsyLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "8905f979-603d-4ed3-890b-d245c5cf9ba4",
+    "name": "Goblet Reverse Lunge",
+    "exerciseName": "dumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "4bb481a8-567d-430b-b014-9f27bba7a802",
+    "name": "Goblet Split Squat",
+    "exerciseName": "dumbbellSplitSquat",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "c4adea15-ee05-4082-92d5-4702af424191",
+    "name": "Iso Split Squat",
+    "exerciseName": "lunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "c234a1ff-547d-4c59-a375-497f3e37d0b1",
+    "name": "Iso Split Squat Chop",
+    "exerciseName": "halfKneelingStabilityChop",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "b68dd564-eb27-4b76-904f-67e25cf6de8c",
+    "name": "Iso Split Squat Lift",
+    "exerciseName": "halfKneelingStabilityReverseChop",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "71d78981-b0a9-40a4-8235-2485e2116bf5",
+    "name": "Iso Split Squat Pallof Press",
+    "exerciseName": "halfKneelingRotation",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "2916e77f-31a3-450c-9af1-ce4e26e9cdb0",
+    "name": "Iso Split Squat Single-Arm Chest Press",
+    "exerciseName": "singleArmCableChestPress",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "d1e3eb78-ebf3-4725-9676-f3a61535fa41",
+    "name": "Jump Lunge",
+    "exerciseName": "alternatingJumpLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "a4718680-b481-46bc-9309-6101a342d9bc",
+    "name": "Lateral Lunge",
+    "exerciseName": "lateralLeapAndHop",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "4adc0809-1796-403d-9f61-f6a15a397b1f",
+    "name": "Lateral Lunge to Hop",
+    "exerciseName": "lateralLeapAndHop",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "d4634ec3-7a7f-49b2-b2a5-e965aaa67744",
+    "name": "Racked Offset Split Squat with Rotation",
+    "exerciseName": "offsetDumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "7e9109b1-47cc-44ce-ad5f-957c52eea105",
+    "name": "Racked Reverse Lunge",
+    "exerciseName": "dumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "d0211436-8cfe-43b7-841e-638f67ec2b60",
+    "name": "Resisted Alternating Lunge",
+    "exerciseName": "alternatingDumbbellLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "206dbbce-c14b-4c34-8d68-37b7aafbea00",
+    "name": "Resisted Deep Lunge",
+    "exerciseName": "alternatingDumbbellLungeWithReach",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "f8bad1ec-c502-4379-b2f4-e9198245e534",
+    "name": "Resisted Lateral Lunge",
+    "exerciseName": "weightedSlidingLateralLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "963ff377-e0cf-4760-962c-d8924bcaa67f",
+    "name": "Reverse Lunge",
+    "exerciseName": "dumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "01c29777-688d-4174-861e-e1de32a292f5",
+    "name": "Reverse Lunge with Hop",
+    "exerciseName": "alternatingJumpLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "f5aa94ec-bdc1-4cf6-b306-a5c359dc248d",
+    "name": "Reverse Lunge with Rotation",
+    "exerciseName": "dumbbellLungeAndRotation",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "b5aa04b0-19d9-4553-ab28-18959d33abe4",
+    "name": "Reverse Lunge with Single-Arm Row",
+    "exerciseName": "singleArmCableRow",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "2f5153ed-1360-4263-850b-4ace86efad46",
+    "name": "Runners Lunge",
+    "exerciseName": "runnersLunge",
+    "categoryHint": "lunge",
+    "onMachine": false
+  },
+  {
+    "movementId": "c7737825-dd6f-44b4-9b25-6ee66b43d07d",
+    "name": "Split Squat",
+    "exerciseName": "dumbbellSplitSquat",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "61402e4e-bded-4ef8-ba91-77c0c72dbb35",
+    "name": "Suitcase Reverse Lunge",
+    "exerciseName": "offsetDumbbellReverseLunge",
+    "categoryHint": "lunge",
+    "onMachine": true
+  },
+  {
+    "movementId": "c1233ebd-7114-445b-a4f5-30ed444b4d50",
+    "name": "Bear Hold",
+    "exerciseName": "bearCrawl",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "2a61353a-de0a-484d-9f1a-7fbe6b131b89",
+    "name": "Bear Hold with Shoulder Tap",
+    "exerciseName": "bearCrawl",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "6eac83a8-db66-4862-b617-6577348add68",
+    "name": "Bent Knee Copenhagen Plank",
+    "exerciseName": "sidePlankWithFeetOnBench",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "d313ccd4-ad81-415c-8ce9-362f5e6696f3",
+    "name": "Bird Dog",
+    "exerciseName": "armAndLegExtensionOnKnees",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "3fbe5a3b-2140-473a-be43-2d19f19a1b59",
+    "name": "Bird Dog with Row",
+    "exerciseName": "oneArmBentOverRow",
+    "categoryHint": "plank",
+    "onMachine": true
+  },
+  {
+    "movementId": "91eb94ea-5efb-4718-aba5-8909925a9e68",
+    "name": "Copenhagen Plank",
+    "exerciseName": "sidePlankWithFeetOnBench",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "a2c09363-d4a3-46c1-a4c2-4fcfe42ef19b",
+    "name": "Foot Elevated Lateral Bridge",
+    "exerciseName": "sidePlankWithFeetOnBench",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "ae6fddf5-0ec6-4169-9aab-dc35828508f1",
+    "name": "Incline Pillar Bridge",
+    "exerciseName": "elevatedFeetPlank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "e9b5af01-877f-4829-9864-5a6d083381d7",
+    "name": "Incline Plank with Shoulder Tap",
+    "exerciseName": "straightArmPlankWithShoulderTouch",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "cef3a8cd-939e-4208-b0d4-976f5bc46ffe",
+    "name": "Kneeling Lateral Bridge",
+    "exerciseName": "sidePlankWithKneeTuck",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "d7f2eac2-d0b5-4d85-9977-97278607e34b",
+    "name": "Lateral Bridge",
+    "exerciseName": "sidePlank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "98cb757f-abf7-44ff-bb46-145b76eb2dd3",
+    "name": "Lateral Bridge Hip Dip",
+    "exerciseName": "sidePlank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "7e662049-f067-46f2-b83a-33d9ce1ea6a3",
+    "name": "Lateral Bridge with Rotation",
+    "exerciseName": "sidePlankWithReachUnder",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "d509c836-0e78-48d5-8daf-3900add72be4",
+    "name": "Lateral Bridge with Row",
+    "exerciseName": "sidePlankAndRow",
+    "categoryHint": "plank",
+    "onMachine": true
+  },
+  {
+    "movementId": "518e3e7b-99f9-4c1d-b374-f7905eced882",
+    "name": "Lateral Crawl",
+    "exerciseName": "bearCrawl",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "7bc2c77c-7726-4bbe-ab3f-99e5add3ab8c",
+    "name": "Lateral Mountain Climber",
+    "exerciseName": "mountainClimber",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "481e4edf-06ab-48b3-a576-ad67365ff052",
+    "name": "Leopard Crawl",
+    "exerciseName": "bearCrawl",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "8a1062fa-0e41-4fac-828d-88d3139102d4",
+    "name": "Mountain Climber",
+    "exerciseName": "mountainClimber",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "13e0435f-41bc-4332-8efa-a1b4afcb21bb",
+    "name": "Mountain Climber Twist",
+    "exerciseName": "crossBodyMountainClimber",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "596e53e7-6213-4626-b64e-d8cd0c947fd1",
+    "name": "Pillar Bridge",
+    "exerciseName": "plank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "526891db-c314-4bc4-9656-25e78f2e2ae5",
+    "name": "Pillar Bridge with Row",
+    "exerciseName": "latPulldown",
+    "categoryHint": "plank",
+    "onMachine": true
+  },
+  {
+    "movementId": "006e2157-32cf-4044-9be3-2a04b04cbceb",
+    "name": "Plank Jack",
+    "exerciseName": "plankJacksWithFeetOnSlidingDiscs",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "7fb8d820-514b-4936-a4d5-f19ed68ed7b6",
+    "name": "Plank to Toe Tap",
+    "exerciseName": "plank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "6696ef4a-72d3-4754-bc1f-4c5036a524ce",
+    "name": "Plank Walk Out",
+    "exerciseName": "plank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "f19f734d-704e-4e71-984d-bcbc61de692b",
+    "name": "Plank with Reach",
+    "exerciseName": "plankWithArmRaise",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "76fad22d-5fc5-4e4e-bcff-cbcfa9d5a4f6",
+    "name": "Pushup to Plank",
+    "exerciseName": "plank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "0955a55f-ea8b-45ea-997e-68d524429888",
+    "name": "Rolling Pillar Bridge",
+    "exerciseName": "rollingSidePlank",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "5c43660f-c700-4bda-9ce5-16b12f2db2dd",
+    "name": "Shoulder Tap Plank",
+    "exerciseName": "straightArmPlankWithShoulderTouch",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "08758d6d-a9c0-4b67-bd71-3a3a0431a454",
+    "name": "Single-Limb Bird Dog",
+    "exerciseName": "singleLegFlexAndExtend",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "ad514cdb-b02e-4376-9497-eed35dca7b46",
+    "name": "Spiderman Crawl",
+    "exerciseName": "bearCrawl",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "99624d39-7233-4f2b-8d47-d1f92a684bf4",
+    "name": "Superhero Iso Hold",
+    "exerciseName": "supermanFromFloor",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "5ae24d6a-9dfa-4972-8efa-78c966bfc18a",
+    "name": "W-Hold",
+    "exerciseName": "90DegreeStaticHold",
+    "categoryHint": "plank",
+    "onMachine": false
+  },
+  {
+    "movementId": "7a2e463e-7e18-467f-af42-229cdf8a7bae",
+    "name": "180 Jump Squat",
+    "exerciseName": "bodyWeightJumpSquat",
+    "categoryHint": "plyo",
+    "onMachine": false
+  },
+  {
+    "movementId": "e4797e87-bef3-40cc-a1b3-ec160337ca00",
+    "name": "Broad Jump to Backpedal",
+    "exerciseName": "bodyWeightJumpSquat",
+    "categoryHint": "plyo",
+    "onMachine": false
+  },
+  {
+    "movementId": "8dd1f44f-7706-4016-8ac2-aa212c08c33a",
+    "name": "Frogger",
+    "exerciseName": "burpee",
+    "categoryHint": "plyo",
+    "onMachine": false
+  },
+  {
+    "movementId": "43079c20-bbd1-4cfb-85fc-6e79e4f25967",
+    "name": "Jump Squat",
+    "exerciseName": "dumbbellJumpSquat",
+    "categoryHint": "plyo",
+    "onMachine": false
+  },
+  {
+    "movementId": "1f5e8776-3b9c-4fe7-80d1-75b5b28a4455",
+    "name": "Alternating Neutral Lat Pulldown",
+    "exerciseName": "latPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "56d65783-2054-4517-aa07-03051b2224cc",
+    "name": "Barbell Chinup",
+    "exerciseName": "chinUp",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "9806547f-2029-4c0a-94cc-d43b7b46da6c",
+    "name": "Barbell Pullover",
+    "exerciseName": "ezBarPullover",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "04b05efe-4873-4dc1-b178-a5173e0588d9",
+    "name": "Barbell Seated Lat Pulldown",
+    "exerciseName": "latPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "f94f667d-5fe2-4bf7-b87e-ca705d5b627d",
+    "name": "Barbell Straight Arm Pulldown",
+    "exerciseName": "straightArmPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "1c432cc6-60ff-46eb-9d1d-72cd1c08174d",
+    "name": "Half Kneeling Single-Arm Pulldown (Contralateral)",
+    "exerciseName": "kneelingLatPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "bc730d06-ef89-4fc9-8e23-886a6d22dcd9",
+    "name": "Half Kneeling Single-Arm Pulldown (Ipsilateral)",
+    "exerciseName": "kneelingLatPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "0c498470-12f9-4b8b-83e8-940e70f7b967",
+    "name": "Neutral Lat Pulldown",
+    "exerciseName": "neutralGripPullUp",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "9eeb123a-e072-439a-aa28-3fc490fadfa4",
+    "name": "Neutral Single-Arm Straight Arm Pulldown",
+    "exerciseName": "straightArmPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "5ac0e785-c473-43d6-b1de-cc7befeac449",
+    "name": "Seated Lat Pulldown",
+    "exerciseName": "latPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "7a9bbcf9-22d3-4447-9096-585e162bc5c3",
+    "name": "Seated Single-Arm Lat Pulldown",
+    "exerciseName": "latPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "59bc17c2-b92f-4c70-a157-fcc6b8aa44e2",
+    "name": "Straight Arm Pulldown",
+    "exerciseName": "straightArmPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "406f12cb-3aaa-43e8-af19-23c6f28c31d3",
+    "name": "Tall Kneeling Single-Arm Lat Pulldown",
+    "exerciseName": "kneelingLatPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "6663cf19-28e2-42eb-9c80-2b101f35280d",
+    "name": "X-Pulldown",
+    "exerciseName": "latPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "d5555c40-95d3-4587-9fb7-f92c69ecc490",
+    "name": "X-Pulldown with Triceps Extension",
+    "exerciseName": "latPulldown",
+    "categoryHint": "pullUp",
+    "onMachine": true
+  },
+  {
+    "movementId": "e4263a8a-8246-4f18-9791-ad1bbea8b409",
+    "name": "Alternating Staggered Pushup",
+    "exerciseName": "alternatingStaggeredPushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "9a4849f3-dfc6-47fc-b23a-bc9b01940943",
+    "name": "Beast Pushup",
+    "exerciseName": "pushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "856961a3-6f59-49fa-98e8-42562309a7ca",
+    "name": "Foot Elevated Pushup",
+    "exerciseName": "feetElevatedSideToSidePushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "a4c2835f-332c-4064-9933-2b9586d6e648",
+    "name": "Incline Pushup",
+    "exerciseName": "inclinePushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "c7947f9c-5141-4d98-b8e5-339a26e73399",
+    "name": "Kneeling Pushup",
+    "exerciseName": "kneelingPushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "6d6ad0f3-a332-418f-8746-d47f2ff17c6a",
+    "name": "Pushup",
+    "exerciseName": "pushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "52d7ed26-f38c-4e32-babe-fb9be48d515b",
+    "name": "Scapular Pushup",
+    "exerciseName": "shoulderPushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "2da40d18-5f1c-42a8-9a21-c2677a00d300",
+    "name": "Traveling Pushup",
+    "exerciseName": "pushUp",
+    "categoryHint": "pushUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "ec9edd5f-4745-45b7-b78b-b7368839ca38",
+    "name": "Barbell Bent Over Row",
+    "exerciseName": "bentOverRowWithBarbell",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "b49810b9-44bd-4e7d-9b5d-88029681d855",
+    "name": "Bent Over Row",
+    "exerciseName": "bentOverRowWithDumbell",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "b4caae56-c6f8-430f-ac33-15d4fed8d8af",
+    "name": "Half Kneeling Single-Arm Row",
+    "exerciseName": "singleArmCableRow",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "3d0c5a39-646a-4d21-b6b0-734e415b62c6",
+    "name": "Rotational Row",
+    "exerciseName": "singleArmCableRow",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "dda6c9c4-4142-43a0-ab41-092d842e8bf0",
+    "name": "Seated Alternating Row",
+    "exerciseName": "seatedCableRow",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "517eadf3-84a0-4800-96f3-072f4a53c7f8",
+    "name": "Seated Row",
+    "exerciseName": "seatedCableRow",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "97854f66-63ce-4d82-8d62-554a19174113",
+    "name": "Single-Arm Bent Over Row",
+    "exerciseName": "singleArmNeutralGripDumbbellRow",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "2e706f78-af9a-41cb-aaaf-20df3212b690",
+    "name": "Standing Face Pull",
+    "exerciseName": "facePull",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "6143f6f7-a9ad-4c8b-a63e-c44f59526014",
+    "name": "Standing Single-Arm Row",
+    "exerciseName": "singleArmCableRow",
+    "categoryHint": "row",
+    "onMachine": true
+  },
+  {
+    "movementId": "a906fa8b-a55d-4acf-b350-c6b12f77bf40",
+    "name": "Barbell Seated Overhead Press",
+    "exerciseName": "seatedBarbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "5bd3f11f-989d-4b7a-8399-0df678113b73",
+    "name": "External Shoulder Rotation",
+    "exerciseName": "cableExternalRotation",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "77c3e119-33e8-4a70-85d1-9c29ace43f20",
+    "name": "Half Kneeling Alternating Overhead Press",
+    "exerciseName": "alternatingDumbbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "ead86c43-e68b-403b-a54f-25f9213a35bc",
+    "name": "Half Kneeling Overhead Press",
+    "exerciseName": "overheadDumbbellPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "b5909b6d-21b0-41c0-b3ee-852f529c6afc",
+    "name": "Half Kneeling Single-Arm Overhead Press",
+    "exerciseName": "singleArmDumbbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "2d93569f-e374-44fc-bf76-917a3ad61594",
+    "name": "Internal Shoulder Rotation",
+    "exerciseName": "cableInternalRotation",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "6c06db83-63df-40ba-b1b7-71720f06e75a",
+    "name": "Prone Shoulder Sweep",
+    "exerciseName": "shoulderSweeps",
+    "categoryHint": "shoulderPress",
+    "onMachine": false
+  },
+  {
+    "movementId": "d2454e78-e0ad-40ba-bf4f-9e4d981a2966",
+    "name": "Seated Alternating Overhead Press",
+    "exerciseName": "alternatingDumbbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "c3387b0d-c4e4-470f-aa7a-1fe20a3ce071",
+    "name": "Seated Overhead Press",
+    "exerciseName": "seatedDumbbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "f15f586b-90f6-426c-b445-3415c1d4fea0",
+    "name": "Seated Single-Arm Overhead Press",
+    "exerciseName": "seatedDumbbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "eabcfa09-599a-4efd-8997-de107832de01",
+    "name": "Standing Barbell Overhead Press",
+    "exerciseName": "barbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "15e61478-bbe3-41dc-a45c-7dd857bb8968",
+    "name": "Standing Overhead Press",
+    "exerciseName": "dumbbellShoulderPress",
+    "categoryHint": "shoulderPress",
+    "onMachine": true
+  },
+  {
+    "movementId": "dbf97d63-6877-42bf-96f4-2c2892f90210",
+    "name": "Standing Shoulder CARs",
+    "exerciseName": "standingLRaise",
+    "categoryHint": "shoulderPress",
+    "onMachine": false
+  },
+  {
+    "movementId": "69191b43-d000-480e-9f9b-3ca676aa46bb",
+    "name": "Y-Pull",
+    "exerciseName": "cablePullThrough",
+    "categoryHint": "shoulderStability",
+    "onMachine": true
+  },
+  {
+    "movementId": "772c57de-5c39-4e9d-8e09-32326437433f",
+    "name": "Shoulder Shrug",
+    "exerciseName": "dumbbellShrug",
+    "categoryHint": "shrug",
+    "onMachine": true
+  },
+  {
+    "movementId": "c6f063ad-ffdc-4606-8352-c4bbf97c50ff",
+    "name": "Upright Row",
+    "exerciseName": "dumbbellUprightRow",
+    "categoryHint": "shrug",
+    "onMachine": true
+  },
+  {
+    "movementId": "a4775f44-28da-4f84-8867-fb191949a442",
+    "name": "V-Up",
+    "exerciseName": "vUp",
+    "categoryHint": "sitUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "84df58e8-4b42-46ee-abb3-c953d1148fda",
+    "name": "Assisted Squat",
+    "exerciseName": "dumbbellSquat",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "f2f15034-7c0f-4a9d-8f21-24ca3abadd93",
+    "name": "Barbell Front Squat",
+    "exerciseName": "barbellFrontSquat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "16323ff6-8dab-4f03-afec-0488986d1784",
+    "name": "Barbell Squat to Press",
+    "exerciseName": "dumbbellThrusters",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "7d6bebf9-d5c7-4d13-bd84-7ad9ae1b031f",
+    "name": "Bodyweight Alternating Lateral Squat",
+    "exerciseName": "sideLunge",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "abfc3493-13e0-4a43-92cb-db5411c56910",
+    "name": "Bodyweight Alternating Step Up",
+    "exerciseName": "stepUp",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "02ba615d-2fa1-4216-81ee-127b9b58644c",
+    "name": "Bodyweight Squat",
+    "exerciseName": "squat",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "2bd4de7e-d0d0-4aab-ac2d-8511cc80d918",
+    "name": "Goblet Squat",
+    "exerciseName": "gobletSquat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "b74bbdaf-8a92-497e-ab9e-88e8e1c161b0",
+    "name": "Goblet Squat to Bench",
+    "exerciseName": "gobletSquat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "124bbdb1-482d-4045-ae84-72b4e2eb65e0",
+    "name": "Iso Squat Hold",
+    "exerciseName": "squat",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "ae08e77e-ab5e-4b17-aeba-20e8ed12d9f5",
+    "name": "Low Squat Walk Out",
+    "exerciseName": "squat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "9b9c5754-bbfe-4ae4-b531-e4adc6fa4fec",
+    "name": "Mini Sumo Squat",
+    "exerciseName": "sumoSquat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "a3beb152-38a8-40ae-948e-9d07ffb5b8cd",
+    "name": "Pistol Squat to Bench",
+    "exerciseName": "pistolSquat",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "03157c8a-2c1b-41cb-a8c3-7169033bb094",
+    "name": "Racked Offset Squat",
+    "exerciseName": "unevenSquat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "7d6175b3-1351-4dad-830e-632ab3e6ecb6",
+    "name": "Racked Squat",
+    "exerciseName": "dumbbellFrontSquat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "cc0aaa36-dd08-4be3-852e-cf6365f840ce",
+    "name": "Racked Squat to Bench",
+    "exerciseName": "dumbbellFrontSquat",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "4b4e3a95-d62a-40b5-873c-1287432c1824",
+    "name": "Resisted Step Up",
+    "exerciseName": "dumbbellStepUp",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "60de026e-0076-4af7-8bc0-b3c2f31051a3",
+    "name": "Reverse Lunge to Step Up",
+    "exerciseName": "stepup",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "75bd7e26-7c11-40c9-aadc-d096612dcd3a",
+    "name": "Rotational Squat Jack",
+    "exerciseName": "squatJacks",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "0ba88eb7-9505-4439-95de-c0bfbaa6e060",
+    "name": "Single-Arm Squat with Row",
+    "exerciseName": "singleArmCableRow",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "4bcd3975-c67a-41b7-8a2a-405e1ecbd14d",
+    "name": "Single-Leg Bench Step Over",
+    "exerciseName": "lateralStepover",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "4efd8866-768f-4fb5-805b-abcde181e909",
+    "name": "Squat Jack",
+    "exerciseName": "squatJacks",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "ceda4364-ca24-491c-8138-70d9a330747d",
+    "name": "Squat to Press",
+    "exerciseName": "squatToPress",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "0f17a471-36bb-4209-b8bf-8e895240d4d5",
+    "name": "Squat with Row",
+    "exerciseName": "ropeHandleCableRow",
+    "categoryHint": "squat",
+    "onMachine": true
+  },
+  {
+    "movementId": "19af8704-2730-409f-b668-013554ffa510",
+    "name": "Step Up",
+    "exerciseName": "stepUp",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "aee454a3-0d31-41c6-825b-6c7537cd17e5",
+    "name": "Sumo Squat Stretch",
+    "exerciseName": "sumoSquat",
+    "categoryHint": "squat",
+    "onMachine": false
+  },
+  {
+    "movementId": "2df095be-63ee-4300-bef6-18870c797ff2",
+    "name": "Burp",
+    "exerciseName": "burpee",
+    "categoryHint": "totalBody",
+    "onMachine": false
+  },
+  {
+    "movementId": "3e429dce-dc23-4ba8-91d0-d36d1c255a41",
+    "name": "Burpee",
+    "exerciseName": "burpee",
+    "categoryHint": "totalBody",
+    "onMachine": false
+  },
+  {
+    "movementId": "217449f9-4feb-4a7d-aed9-c3f02878469c",
+    "name": "Incline Burp to Alternating Step Up",
+    "exerciseName": "burpeeBoxJumpStepUpOver",
+    "categoryHint": "totalBody",
+    "onMachine": false
+  },
+  {
+    "movementId": "7e40f53a-78a5-4620-b903-4bc81d05cbe2",
+    "name": "Barbell Skull Crusher",
+    "exerciseName": "lyingEzBarTricepsExtension",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "9b0b0dad-6f86-4832-9dee-e6eaf4fad8b9",
+    "name": "Overhead Triceps Extension",
+    "exerciseName": "cableOverheadTricepsExtension",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "3ab05f57-b729-4abe-a15e-00a1680f2547",
+    "name": "Reverse Grip Barbell Triceps Extension",
+    "exerciseName": "reverseGripTricepsPressdown",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "0e17b36b-37b4-4c6f-accb-979dfaaf30d2",
+    "name": "Reverse Grip Triceps Extension",
+    "exerciseName": "reverseGripTricepsPressdown",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "3671753e-8f7a-43b9-b20c-fce4a0991a0a",
+    "name": "Single-Arm Triceps Extension",
+    "exerciseName": "reverseGripTricepsPressdown",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "52f1a3a8-6a76-46b7-ba3b-d5ceba0ddbc9",
+    "name": "Skull Crusher",
+    "exerciseName": "cableLyingTricepsExtension",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "49a8ba31-3233-4838-8df8-a7a73fcb71c7",
+    "name": "Triceps Bench Dip",
+    "exerciseName": "bodyWeightDip",
+    "categoryHint": "tricepsExtension",
+    "onMachine": false
+  },
+  {
+    "movementId": "8571813d-b302-4cbe-a3b5-cc805a046b7d",
+    "name": "Triceps Extension",
+    "exerciseName": "tricepsPressdown",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "2f5a1f17-32cd-4fb6-9213-46a19a889837",
+    "name": "Triceps Kickback",
+    "exerciseName": "cableKickback",
+    "categoryHint": "tricepsExtension",
+    "onMachine": true
+  },
+  {
+    "movementId": "5f31af31-f322-4b88-9ec2-8a2ae8e6e936",
+    "name": "Cat-Cow",
+    "exerciseName": "stretchCatCow",
+    "categoryHint": "warmUp",
+    "onMachine": false
+  },
+  {
+    "movementId": "87f2a7e5-f7e8-4dcd-b628-e9cc95270c5b",
+    "name": "90-90 Arm Sweep",
+    "exerciseName": "shoulderSweeps",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "50e2a938-eee8-4aa4-a82c-17bc9cd12340",
+    "name": "90-90 Hip Stretch",
+    "exerciseName": "ninetyNinetyHipSwitch",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "deb5d7e5-c3db-4262-94e9-d0e578ee0883",
+    "name": "Bent Over IYT Raise",
+    "exerciseName": "inclineYRaise",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "820c93fa-3d44-48a3-903e-6d1e8b32823c",
+    "name": "Bretzel Stretch",
+    "exerciseName": "stretch90_90",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "18210c83-573b-4c7a-b015-5caee6e4b5b1",
+    "name": "DNS Star",
+    "exerciseName": "sidePlankAndRow",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "48af40e8-1b93-4658-a31b-ccbfa3b14472",
+    "name": "Floor Slide",
+    "exerciseName": "shoulderSweeps",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "1df7c409-4ca1-4ce0-9b5d-8767ca3c6770",
+    "name": "Lateral Bench Jump",
+    "exerciseName": "boxJumpOvers",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "aed09583-aaf2-4b99-b991-f4d76a3ea494",
+    "name": "Quadruped Hip Stretch",
+    "exerciseName": "hipCircles",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "4bc167d1-a598-49f5-897b-c7a7724e9df2",
+    "name": "Quadruped Hip Stretch with Bench",
+    "exerciseName": "hipCircles",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "fb0ceb84-2a21-4428-aa52-58abbce66a5f",
+    "name": "Reach and Rotate Closer",
+    "exerciseName": "stretchOverUnderShoulder",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "280df243-f928-4662-9851-b703614b3e87",
+    "name": "Reach and Rotate Opener",
+    "exerciseName": "stretchOverUnderShoulder",
+    "categoryHint": "",
+    "onMachine": false
+  },
+  {
+    "movementId": "4a377a61-5a09-4ece-a627-74b70386e992",
+    "name": "Resisted DNS Star",
+    "exerciseName": "sidePlankAndRow",
+    "categoryHint": "",
+    "onMachine": true
+  },
+  {
+    "movementId": "61ff8f2b-f821-4078-a36f-67e540c8b694",
+    "name": "Standing Leg Extension",
+    "exerciseName": "legPress",
+    "categoryHint": "",
+    "onMachine": true
+  }
+]

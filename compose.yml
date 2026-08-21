@@ -1,0 +1,15 @@
+services:
+  tonal-mcp:
+    build: .
+    image: tonal-mcp:latest
+    container_name: tonal-mcp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18082:8080"
+    environment:
+      - TONAL_EMAIL=${TONAL_EMAIL}
+      - TONAL_PASSWORD=${TONAL_PASSWORD}
+      - MCP_BEARER_TOKEN=${MCP_BEARER_TOKEN}
+      - MCP_PUBLIC_URL=${MCP_PUBLIC_URL}
+    volumes:
+      - ./data:/data
