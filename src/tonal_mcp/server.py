@@ -97,6 +97,7 @@ async def list_exercises(
     muscle_group: str | None = None,
     body_region: str | None = None,
     push_pull: str | None = None,
+    family: str | None = None,
     on_machine: bool | None = None,
     query: str | None = None,
     limit: int = 50,
@@ -113,13 +114,22 @@ async def list_exercises(
     movements are '' -- unclassified, not a 4th region). push_pull is
     'Push'/'Pull' (also frequently '' -- most core/isolation/mobility moves
     aren't classified either way, this isn't a data gap to work around).
-    query is a substring match on name. Without any filter this still caps
-    at `limit` (default 50) rather than returning the full catalog -- pass
-    filters to narrow what you actually need, not limit alone, since limit
-    truncates an arbitrary slice rather than the most relevant one. Cached
-    in-process after the first call within this server's lifetime; Tonal's
-    catalog changes rarely enough that a restart-to-refresh tradeoff is the
-    right one here.
+    family is Tonal's own exercise-family label, exact match, case-
+    insensitive (e.g. "Squat", "Lunge", "Row"). Stretches/warm-up/cooldown
+    work is filed under family="ActiveRecovery" -- confirmed live, there is
+    no "Mobility" family; querying for "mobility" itself will return nothing
+    because that word doesn't appear in any real family or movement name, so
+    filter by family="ActiveRecovery" instead of guessing at query text for
+    that kind of work. query is a substring match on name, after lowercasing
+    and collapsing punctuation/spacing on both sides -- "cat cow" matches
+    Tonal's own "Cat-Cow" (confirmed live this needed fixing: a naive
+    substring check missed it purely over the hyphen-vs-space difference).
+    Without any filter this still caps at `limit` (default 50) rather than
+    returning the full catalog -- pass filters to narrow what you actually
+    need, not limit alone, since limit truncates an arbitrary slice rather
+    than the most relevant one. Cached in-process after the first call
+    within this server's lifetime; Tonal's catalog changes rarely enough
+    that a restart-to-refresh tradeoff is the right one here.
 
     is_generic=True entries ("Handle Move", "Rope Move", "Bar Move", "Ankle
     Strap Move" -- 3 near-identical movement_ids each, real Tonal duplicates,
@@ -131,7 +141,7 @@ async def list_exercises(
     allowed) -- program a rest block between working sets by using it."""
     return await service.list_exercises(
         muscle_group=muscle_group, body_region=body_region, push_pull=push_pull,
-        on_machine=on_machine, query=query, limit=limit,
+        family=family, on_machine=on_machine, query=query, limit=limit,
     )
 
 

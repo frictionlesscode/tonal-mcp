@@ -6,6 +6,7 @@ created TonalClient per process, matching garmin-mcp's single-account model.
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 from tonal_mcp import movements as movements_module
@@ -149,10 +150,20 @@ async def _get_exercise_catalog() -> list[dict[str, Any]]:
     return _exercise_catalog
 
 
+def _normalize_name(s: str) -> str:
+    # Collapses hyphens/underscores/punctuation to spaces before comparing,
+    # so a natural-language query like "cat cow" matches Tonal's own
+    # "Cat-Cow" -- confirmed live this was a real miss (see SPEC.md): a
+    # plain substring check against the raw name silently returned zero
+    # results for that exact case.
+    return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+
+
 async def list_exercises(
     muscle_group: str | None = None,
     body_region: str | None = None,
     push_pull: str | None = None,
+    family: str | None = None,
     on_machine: bool | None = None,
     query: str | None = None,
     limit: int = 50,
@@ -166,11 +177,13 @@ async def list_exercises(
         results = [m for m in results if (m.get("bodyRegion") or "").lower() == body_region.lower()]
     if push_pull:
         results = [m for m in results if (m.get("pushPull") or "").lower() == push_pull.lower()]
+    if family:
+        results = [m for m in results if (m.get("family") or "").lower() == family.lower()]
     if on_machine is not None:
         results = [m for m in results if m.get("onMachine") == on_machine]
     if query:
-        target = query.lower()
-        results = [m for m in results if target in m["name"].lower()]
+        target = _normalize_name(query)
+        results = [m for m in results if target in _normalize_name(m["name"])]
     return [_to_catalog_entry(m) for m in results[:limit]]
 
 

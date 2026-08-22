@@ -83,6 +83,14 @@ class FakeClient:
             {"id": "rest-1", "name": "Rest", "muscleGroups": [],
              "bodyRegion": None, "pushPull": None, "family": "Rest",
              "onMachine": False, "inFreeLift": False, "skillLevel": 0, "isGeneric": False},
+            # Hyphenated name -- regression fixture for the query-matching
+            # bug report: a naive substring check against "cat cow" (space)
+            # missed "Cat-Cow" (hyphen) entirely. Also the fixture for the
+            # family filter, since ActiveRecovery is where stretches/warm-up
+            # work actually lives (confirmed live, see SPEC.md).
+            {"id": "catcow-1", "name": "Cat-Cow", "muscleGroups": ["Back"],
+             "bodyRegion": "", "pushPull": "", "family": "ActiveRecovery",
+             "onMachine": False, "inFreeLift": True, "skillLevel": 0, "isGeneric": False},
         ]
 
     async def estimate_workout_duration(self, sets):
@@ -220,7 +228,7 @@ async def test_list_exercises_includes_generic_and_rest_movements():
     # them, flagged via is_generic/family rather than hidden.
     results = await service.list_exercises()
     names = {r["name"] for r in results}
-    assert names == {"Barbell Bench Press", "Seated Row", "Plank", "Handle Move", "Rest"}
+    assert names == {"Barbell Bench Press", "Seated Row", "Plank", "Handle Move", "Rest", "Cat-Cow"}
 
     handle_move = next(r for r in results if r["name"] == "Handle Move")
     assert handle_move["is_generic"] is True
@@ -260,9 +268,27 @@ async def test_list_exercises_filters_by_push_pull():
 
 async def test_list_exercises_filters_by_on_machine():
     results = await service.list_exercises(on_machine=False)
-    # "Rest" is also onMachine=False in real Tonal data (and in the fixture)
-    # -- it stays included since list_exercises no longer hides it.
-    assert {r["name"] for r in results} == {"Plank", "Rest"}
+    # "Rest" and "Cat-Cow" are also onMachine=False in real Tonal data (and
+    # in the fixture) -- they stay included since list_exercises no longer
+    # hides them.
+    assert {r["name"] for r in results} == {"Plank", "Rest", "Cat-Cow"}
+
+
+async def test_list_exercises_query_matches_across_hyphen_vs_space():
+    # The actual fix for the live bug report: "cat cow" (natural phrasing,
+    # space) must match Tonal's own "Cat-Cow" (hyphen) -- a naive substring
+    # check silently returned nothing for this exact case.
+    for q in ["cat cow", "Cat Cow", "cat-cow", "cat"]:
+        results = await service.list_exercises(query=q)
+        assert [r["name"] for r in results] == ["Cat-Cow"], q
+
+
+async def test_list_exercises_filters_by_family_case_insensitive():
+    results = await service.list_exercises(family="activerecovery")
+    assert [r["name"] for r in results] == ["Cat-Cow"]
+
+    results = await service.list_exercises(family="Rest")
+    assert [r["name"] for r in results] == ["Rest"]
 
 
 async def test_list_exercises_combines_filters_with_and():

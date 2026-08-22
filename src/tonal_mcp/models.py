@@ -92,6 +92,10 @@ class MovementCatalogEntry(TypedDict):
     # 'Push' / 'Pull', or '' -- confirmed live, plenty of movements (most
     # core/isolation/mobility work) aren't classified either way.
     push_pull: str
+    # Tonal's own exercise-family label (e.g. 'Squat', 'Lunge', 'Row',
+    # 'Rest'). Stretches/warm-up/cooldown work is filed under
+    # 'ActiveRecovery' -- confirmed live -- not 'Mobility', which doesn't
+    # exist as a family or appear in any real movement name.
     family: str
     on_machine: bool
     in_free_lift: bool

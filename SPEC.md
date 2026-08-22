@@ -287,13 +287,44 @@ already has in mind (`find_movement`'s job). Confirmed live before building anyt
   Tonal's exercise catalog changes rarely enough that "restart the server to pick up a
   change" is the right cost/complexity tradeoff over a TTL or manual-refresh tool.
 
+## `list_exercises` query/family bug (2026-08-22) — filed after real chat testing
+
+Live bug report: building a workout with "Cat Cow" (and other stretches) in the warm-up block,
+Claude couldn't find the specific movement and fell back to describing a generic pick as a
+"mobility exercise." Confirmed live before fixing, same standing rule as every other finding
+in this file:
+
+- **`query` was a raw substring match on the movement's name, unnormalized.** Tonal's own name
+  for the movement is `"Cat-Cow"` (hyphen). A natural-language query of `"cat cow"` (space) is
+  not a substring of `"cat-cow"`, so `list_exercises(query="cat cow")` returned zero results
+  against the real catalog — confirmed directly, not assumed. Fixed by normalizing both the
+  query and every candidate name (lowercase, punctuation/whitespace collapsed to a single
+  space) before comparing, so `"cat cow"` / `"Cat Cow"` / `"cat-cow"` all match `"Cat-Cow"`.
+  Deliberately narrow: this closes the exact gap found (punctuation/spacing variance), not a
+  general fuzzy-match — `find_movement` already owns fuzzy ranking for "I know roughly what
+  this is called," and `list_exercises` stays a precise browse/filter tool.
+- **There is no "Mobility" family, live — confirmed.** Stretches, warm-up, and cooldown work
+  are filed under Tonal's own `family: "ActiveRecovery"`. Querying for the word "mobility"
+  itself returns nothing because that word doesn't appear in any real family or movement name
+  — there was no way to discover this without already knowing the label. Added a `family`
+  filter parameter (exact match, case-insensitive, same shape as `body_region`/`push_pull`) and
+  documented the `ActiveRecovery` = stretches/warm-up/cooldown mapping directly in both the
+  tool docstring and `MovementCatalogEntry.family`'s field comment, so this doesn't have to be
+  rediscovered from scratch by a future caller (human or Claude) guessing at vocabulary.
+- Regression-tested at both tiers: `test_service.py` adds a hyphenated fixture entry
+  (`"Cat-Cow"`, `family: "ActiveRecovery"`) and asserts the query-normalization and family-
+  filter behavior against the fake catalog; `test_integration.py` asserts the same two things
+  against the real account (`test_list_exercises_query_matches_hyphenated_name_live`,
+  `test_list_exercises_family_filter_finds_active_recovery_live`), pinned to `Cat-Cow`'s real
+  live movement id so a regression here fails loudly rather than silently returning `[]` again.
+
 ## Tool contracts (M2)
 
 ```
 list_workouts(limit: int = 25) -> [{id, title, publish_state, duration_min, set_count, movement_count}]
 get_workout(workout_id: str) -> {id, title, description, publish_state, duration_min, sets: [...]}
 find_movement(name: str) -> [{id, name, on_machine}]  # ranked matches, reusing tonal-garmin-sync's approach
-list_exercises(muscle_group=None, body_region=None, push_pull=None, on_machine=None, query=None, limit=50)
+list_exercises(muscle_group=None, body_region=None, push_pull=None, family=None, on_machine=None, query=None, limit=50)
   -> [{id, name, muscle_groups: [...], body_region, push_pull, family, on_machine, in_free_lift,
        skill_level, is_generic}]  # includes Tonal's freeform/Rest pseudo-movements, flagged not hidden
   # browses Tonal's live catalog (GET /movements) for programming decisions -- see "list_exercises

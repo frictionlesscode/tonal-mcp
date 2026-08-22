@@ -42,6 +42,7 @@ from tonal_mcp.server import mcp  # noqa: E402
 pytestmark = pytest.mark.integration
 
 BODYWEIGHT_SQUAT_ID = "02ba615d-2fa1-4216-81ee-127b9b58644c"
+CAT_COW_ID = "5f31af31-f322-4b88-9ec2-8a2ae8e6e936"
 
 
 def _require_credentials() -> None:
@@ -222,6 +223,27 @@ async def test_list_exercises_includes_rest_flagged_by_family_live(mcp_client: C
     rest = next(r for r in results if r.name == "Rest")
     assert rest.family == "Rest"
     assert rest.is_generic is False
+
+
+async def test_list_exercises_query_matches_hyphenated_name_live(mcp_client: Client):
+    # Live bug report: a Claude chat asked to program "Cat Cow" (space) in a
+    # warm-up block and the server appeared not to know it -- root cause was
+    # a naive substring check against Tonal's real name "Cat-Cow" (hyphen),
+    # which silently returned zero results for the natural-language phrasing.
+    results = (await mcp_client.call_tool("list_exercises", {"query": "cat cow"})).data
+    assert [r.id for r in results] == [CAT_COW_ID]
+    assert results[0].name == "Cat-Cow"
+    assert results[0].is_generic is False
+
+
+async def test_list_exercises_family_filter_finds_active_recovery_live(mcp_client: Client):
+    # There is no "Mobility" family live -- confirmed. Stretches/warm-up/
+    # cooldown work is filed under family="ActiveRecovery"; this is the real
+    # path to that category, not guessing at query text like "mobility".
+    results = (await mcp_client.call_tool("list_exercises", {"family": "ActiveRecovery"})).data
+    assert results
+    assert all(r.family == "ActiveRecovery" for r in results)
+    assert any(r.id == CAT_COW_ID for r in results)
 
 
 async def test_create_workout_accepts_generic_movement_with_descriptive_set(mcp_client: Client):
