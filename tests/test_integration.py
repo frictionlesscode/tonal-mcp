@@ -40,6 +40,7 @@ from fastmcp.exceptions import ToolError  # noqa: E402
 
 from tonal_mcp import service  # noqa: E402
 from tonal_mcp.server import mcp  # noqa: E402
+from tonal_mcp.tonal_client import TonalClient, _AuthState  # noqa: E402
 
 pytestmark = pytest.mark.integration
 
@@ -53,18 +54,50 @@ def _require_credentials() -> None:
         pytest.skip("TONAL_EMAIL/TONAL_PASSWORD not set -- can't run live integration tests")
 
 
+# Carries Auth0 tokens across tests (module-level, survives the whole run) --
+# see _fresh_tonal_client below for why a fresh TonalClient per test still
+# needs to avoid a fresh *password* login per test.
+_cached_auth_state: dict[str, object] = {"id_token": "", "refresh_token": "", "expires_at": 0.0}
+
+
 @pytest.fixture(autouse=True)
 def _fresh_tonal_client():
     """service.py's TonalClient is a module-level singleton (by design, for
     the running server -- see service.py). Under pytest-asyncio each test
     function gets its own event loop, and an httpx.AsyncClient created in a
     prior test's loop breaks on the next test's teardown ("Event loop is
-    closed") -- confirmed live. Resetting the singleton per test trades a
-    fresh Auth0 login per test for not depending on pytest-asyncio's loop
-    lifecycle at all.
+    closed") -- confirmed live. Resetting the singleton per test avoids
+    depending on pytest-asyncio's loop lifecycle at all.
+
+    A fresh TonalClient still needs *some* auth token, though -- and as this
+    file's test count has grown, letting every single test password-
+    authenticate from scratch hit a real live limit: Auth0 started
+    rejecting logins with "Too many logins with the same username or
+    email" partway through a full run (confirmed live -- not a rate limit
+    this session was avoiding on purpose, just one nobody had hit before
+    there were this many live tests). Fixed by seeding each new TonalClient
+    with the previous test's Auth0 tokens (module-level `_cached_auth_state`)
+    instead of leaving it to authenticate from nothing -- `get_valid_token`
+    then either reuses the still-valid id_token directly (bearer tokens
+    aren't tied to a specific httpx.AsyncClient instance, so this is safe
+    across the fresh client) or falls back to a refresh-token grant, and
+    only ever falls all the way back to a fresh password login if neither
+    of those works (e.g. the very first test in a run).
     """
-    service._client = None
+    email = os.environ.get("TONAL_EMAIL")
+    password = os.environ.get("TONAL_PASSWORD")
+    if email and password:
+        client = TonalClient(email, password)
+        client._auth._state = _AuthState(**_cached_auth_state)
+        service._client = client
+    else:
+        service._client = None  # no credentials -- let _require_credentials() skip as before
     yield
+    if service._client is not None:
+        state = service._client._auth._state
+        _cached_auth_state.update(
+            id_token=state.id_token, refresh_token=state.refresh_token, expires_at=state.expires_at,
+        )
     service._client = None
 
 
@@ -568,6 +601,195 @@ async def test_update_workout_on_archived_workout_live(mcp_client: Client):
     finally:
         # Resurrected by the update above -- this is a real, live re-archive,
         # not a no-op against something already archived.
+        await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+
+
+async def test_repetition_total_inconsistency_within_set_group_is_not_validated_live(mcp_client: Client):
+    # Realistic edit: "add one more set to this exercise." repetition_total
+    # is shared across every set in the same set_group/block -- a naive edit
+    # that bumps it only on the newly-added set, leaving the pre-existing
+    # sets at the old total, is exactly the kind of silent structural
+    # mistake this session already found twice elsewhere. Confirmed live:
+    # Tonal does NOT validate or normalize this -- it stores exactly what's
+    # sent, inconsistency and all. Not a bug in this server (it does no
+    # repetition_total bookkeeping of its own, by design -- it's a pure
+    # passthrough), but a real footgun for any caller (chat included) that
+    # edits one set in a group without updating every sibling's
+    # repetition_total to match.
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    two_rounds = [
+        {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 2,
+         "prescribed_duration": 30},
+        {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": False,
+         "set_group": 1, "round": 2, "repetition": 2, "repetition_total": 2,
+         "prescribed_duration": 30},
+    ]
+    created = (await mcp_client.call_tool("create_workout", {"title": title, "sets": two_rounds})).data
+    try:
+        fetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        # "Add a 3rd round" -- the two existing sets are passed back exactly
+        # as fetched (still repetition_total=2); only the new set gets 3.
+        edited_sets = [dataclasses.asdict(s) for s in fetched.sets]
+        edited_sets.append({
+            "movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": False,
+            "set_group": 1, "round": 3, "repetition": 3, "repetition_total": 3,
+            "prescribed_duration": 30,
+        })
+        await mcp_client.call_tool(
+            "update_workout", {"workout_id": created.id, "title": title, "sets": edited_sets},
+        )
+
+        refetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        # Confirmed live: Tonal stores the mismatch as-is -- no error, no
+        # auto-correction of the sibling sets' repetition_total.
+        assert [s.repetition_total for s in refetched.sets] == [2, 2, 3]
+    finally:
+        await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+
+
+async def test_update_workout_orders_by_fields_not_array_order_live(mcp_client: Client):
+    # Confirmed live: Tonal orders a workout's sets by block_number/round
+    # (server-side), not by the order sets appear in the request array --
+    # sending the array in reverse order with identical field values comes
+    # back in the same block_number order as before. Reassuring for the
+    # edit flow this session has been testing: a caller reconstructing the
+    # sets list from get_workout's response doesn't need to preserve the
+    # original array order, only the block/round/set_group field values.
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    set_a = {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": True,
+              "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+              "prescribed_duration": 30}
+    set_b = {"movement_id": JUMPING_JACK_ID, "block_number": 2, "block_start": True,
+              "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+              "prescribed_duration": 20}
+    created = (await mcp_client.call_tool("create_workout", {"title": title, "sets": [set_a, set_b]})).data
+    try:
+        fetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert [s.movement_id for s in fetched.sets] == [BODYWEIGHT_SQUAT_ID, JUMPING_JACK_ID]
+
+        # Write back the array in REVERSED order -- same field values, just a
+        # different list order -- and confirm the result isn't reordered.
+        reversed_sets = [dataclasses.asdict(s) for s in reversed(fetched.sets)]
+        await mcp_client.call_tool(
+            "update_workout", {"workout_id": created.id, "title": title, "sets": reversed_sets},
+        )
+
+        refetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert [s.movement_id for s in refetched.sets] == [BODYWEIGHT_SQUAT_ID, JUMPING_JACK_ID]
+        assert [s.block_number for s in refetched.sets] == [1, 2]
+    finally:
+        await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+
+
+async def test_merge_and_split_blocks_live(mcp_client: Client):
+    # A realistic "reorganize my workout" edit not covered elsewhere: two
+    # sequential blocks merged into one superset (same block_number,
+    # distinct set_group), then split back into two sequential blocks.
+    # Confirmed live: both directions round-trip cleanly.
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    two_blocks = [
+        {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+         "prescribed_duration": 30},
+        {"movement_id": JUMPING_JACK_ID, "block_number": 2, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+         "prescribed_duration": 20},
+    ]
+    created = (await mcp_client.call_tool("create_workout", {"title": title, "sets": two_blocks})).data
+    try:
+        merged = [
+            {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": True,
+             "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+             "prescribed_duration": 30},
+            {"movement_id": JUMPING_JACK_ID, "block_number": 1, "block_start": False,
+             "set_group": 2, "round": 1, "repetition": 1, "repetition_total": 1,
+             "prescribed_duration": 20},
+        ]
+        await mcp_client.call_tool(
+            "update_workout", {"workout_id": created.id, "title": title, "sets": merged},
+        )
+        after_merge = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert [s.block_number for s in after_merge.sets] == [1, 1]
+        assert [s.set_group for s in after_merge.sets] == [1, 2]
+
+        await mcp_client.call_tool(
+            "update_workout", {"workout_id": created.id, "title": title, "sets": two_blocks},
+        )
+        after_split = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert [s.block_number for s in after_split.sets] == [1, 2]
+        assert [s.set_group for s in after_split.sets] == [1, 1]
+    finally:
+        await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+
+
+async def test_custom_description_on_named_movement_survives_live(mcp_client: Client):
+    # description is documented (SetIn's docstring) as being for naming a
+    # *generic* movement's freeform work -- this confirms setting one on an
+    # ordinary named movement (Bodyweight Squat) is also just stored as
+    # sent, not ignored or used to override the movement's real name.
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    sets = [{
+        "movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": True,
+        "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+        "prescribed_duration": 30, "description": "My custom note",
+    }]
+    created = (await mcp_client.call_tool("create_workout", {"title": title, "sets": sets})).data
+    try:
+        fetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert fetched.sets[0].movement_id == BODYWEIGHT_SQUAT_ID
+        assert fetched.sets[0].description == "My custom note"
+    finally:
+        await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+
+
+async def test_update_workout_has_no_optimistic_concurrency_check_live(mcp_client: Client):
+    # Pins down a real risk for a chat-based editor: if the workout changes
+    # between get_workout and update_workout (e.g. edited in the Tonal app
+    # meanwhile), does update_workout detect the conflict, or just overwrite
+    # blind? Confirmed live: no ETag/version anywhere in the payload, and a
+    # stale write succeeds silently -- last writer wins, with no signal that
+    # anything was clobbered. Not fixable in this server (Tonal's API has no
+    # concurrency token to check against); documented so a caller building
+    # an edit flow knows not to rely on any conflict detection existing.
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    original = {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": True,
+                "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+                "prescribed_duration": 30}
+    created = (await mcp_client.call_tool("create_workout", {"title": title, "sets": [original]})).data
+    try:
+        stale_snapshot = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+
+        # "Someone else" (e.g. the Tonal app) changes it after our snapshot.
+        external_edit = dict(original, prescribed_duration=99)
+        await mcp_client.call_tool(
+            "update_workout", {"workout_id": created.id, "title": title, "sets": [external_edit]},
+        )
+
+        # We write back our now-stale snapshot, unaware of the external change.
+        stale_sets = [dataclasses.asdict(s) for s in stale_snapshot.sets]
+        await mcp_client.call_tool(
+            "update_workout", {"workout_id": created.id, "title": title, "sets": stale_sets},
+        )
+
+        final = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        # Confirmed live: no conflict raised -- our stale write just won.
+        assert final.sets[0].prescribed_duration == 30
+    finally:
+        await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+
+
+async def test_update_workout_rejects_empty_title_live(mcp_client: Client):
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    created = (await mcp_client.call_tool(
+        "create_workout", {"title": title, "sets": [_set()]},
+    )).data
+    try:
+        with pytest.raises(ToolError):
+            await mcp_client.call_tool(
+                "update_workout", {"workout_id": created.id, "title": "   ", "sets": [_set()]},
+            )
+    finally:
         await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
 
 

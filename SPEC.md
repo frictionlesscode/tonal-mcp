@@ -436,6 +436,62 @@ way both bugs above were found.
   a 2-set workout using one `"Rest"` set and one generic ("Handle Move") set reports
   `movement_count == 2`, not silently dropping either from Tonal's own `movementIds`.
 
+## Further edit-path exploration (2026-08-25) — more suspected footguns, checked directly against live
+
+A second brainstorming pass over what else could hide a real edit bug, after the two confirmed
+above. Investigated each by hand against the live API first (a small standalone script per
+question) before writing an assertion, so every test below asserts a *confirmed* outcome, not a
+guess -- consistent with this file's standing rule.
+
+- **`repetition_total` inconsistency within one `set_group` is accepted, not validated.** The
+  single highest-value finding of this pass, and the closest in shape to the two bugs already
+  fixed: "add one more set to this exercise" is a completely realistic edit, and
+  `repetition_total` is shared across every set in that group -- a caller that bumps it only on
+  the newly-added set, leaving the pre-existing sets at the old total, produces an internally
+  inconsistent workout. Confirmed live (`test_repetition_total_inconsistency_within_set_group_is_not_validated_live`):
+  Tonal stores exactly what's sent, `[2, 2, 3]` and all -- no error, no auto-correction of the
+  sibling sets. Not a bug in this server, which does no `repetition_total` bookkeeping of its own
+  by design (a pure passthrough) -- but a real, confirmed footgun for any caller (chat included)
+  performing this exact kind of edit. Nothing to fix here without this server taking on
+  responsibility for validating/rewriting sibling sets it wasn't asked to touch, which would be a
+  much bigger design change than a bug fix -- flagged as a finding, not "fixed."
+- **`update_workout` orders sets by `block_number`/`round`, not by array order in the request.**
+  Confirmed live (`test_update_workout_orders_by_fields_not_array_order_live`): sending the exact
+  same two sets in reversed array order comes back in the original `block_number` order. Good
+  news for the edit flow this session has been testing throughout -- a caller reconstructing the
+  sets list from `get_workout`'s response doesn't need to preserve the original array order, only
+  the block/round/set_group field values themselves.
+- **Merging two sequential blocks into one superset, and splitting back, both round-trip
+  cleanly** — confirmed live (`test_merge_and_split_blocks_live`), no bug found.
+- **A custom `description` on an ordinary *named* movement (not just Tonal's generic slots) is
+  stored and returned exactly as sent** — confirmed live
+  (`test_custom_description_on_named_movement_survives_live`), not ignored and not used to
+  override the movement's real name.
+- **`update_workout` has no optimistic concurrency check.** Confirmed live
+  (`test_update_workout_has_no_optimistic_concurrency_check_live`): no ETag/version anywhere in
+  the payload, and writing back a stale snapshot after an intervening external edit succeeds
+  silently -- last writer wins, with no signal anything was clobbered. Not fixable in this server
+  (Tonal's API has no concurrency token to check against); documented so a caller building a
+  fetch-then-edit flow (get_workout's own docstring recommends exactly this) knows there's no
+  protection against a race with a concurrent edit made elsewhere (e.g. in the Tonal app).
+- **`update_workout` rejects an empty/whitespace title**, same as `create_workout` — confirmed
+  live and at the mocked client layer (`test_update_workout_rejects_empty_title_live`,
+  `test_update_workout_rejects_empty_title`); this half of the guard existed in code already but
+  had no test of its own before now.
+
+**Test-infrastructure fallout from growing this file**: running the full live suite after adding
+this pass hit a real Auth0 rate limit — `"Too many logins with the same username or email"` —
+partway through, because `_fresh_tonal_client` password-authenticated from scratch on *every*
+test to sidestep a pytest-asyncio event-loop issue (a fresh `TonalClient` per test, to avoid an
+httpx client from a prior test's now-closed loop). That tradeoff was fine at a handful of tests;
+at 30 it wasn't. Fixed by seeding each fresh `TonalClient`'s auth state with the *previous* test's
+Auth0 tokens (module-level `_cached_auth_state` in `test_integration.py`) instead of nothing —
+`get_valid_token()` then reuses the still-valid `id_token` directly (a bearer token isn't tied to
+a specific httpx client instance) or falls back to a refresh-token grant, and only
+password-authenticates from scratch if neither works (in practice, just the first test of a run).
+Confirmed fixed by running the full live suite twice back to back with no rate-limit error either
+time.
+
 ## Tool contracts (M2)
 
 ```

@@ -127,6 +127,14 @@ async def test_update_workout_requires_id():
             await client.update_workout("", "Leg Day", _one_set())
 
 
+async def test_update_workout_rejects_empty_title():
+    # create_workout has this guard tested already; update_workout's is the
+    # same check but was previously untested on its own.
+    async with TonalClient("user@example.com", "hunter2") as client:
+        with pytest.raises(TonalClientError):
+            await client.update_workout("wk-1", "   ", _one_set())
+
+
 async def test_update_workout_puts_to_id(mocked: respx.MockRouter):
     mocked.post(AUTH_URL).mock(return_value=httpx.Response(200, json=_token_response()))
     route = mocked.put(f"{API_BASE}/user-workouts/wk-1").mock(
