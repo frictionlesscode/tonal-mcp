@@ -378,6 +378,64 @@ field, write the whole list back" flow the docstring recommends.
   schema, a layer the mocked `FakeClient` tests bypass entirely (see `test_integration.py`'s own
   module docstring on why it calls through the real tool-call path).
 
+## Broader edit-path coverage (2026-08-25) — full-CRUD tests across more workout shapes
+
+Prompted by a suspicion that edit bugs might be specific to a mobility-first block. The
+mobility-first-block lifecycle itself turned out fine once the two bugs above were fixed
+(`test_full_crud_lifecycle_with_mobility_first_block[_live]`), but writing it surfaced the
+null-reps/duration bug above, so the same full create→get→update(edit one thing)→get→delete→get
+treatment was extended to every other workout shape this server's tool contracts claim to
+support, on the theory that if two real bugs hid in one shape, more could hide in the others.
+Mocked tests (`test_service.py`) cover this server's own translation logic; live tests
+(`test_integration.py`) are the ones that can actually catch a Tonal-API-specific surprise, the
+way both bugs above were found.
+
+- **True supersets (two distinct movements sharing one `block_number`, told apart by
+  `set_group`, `round` incrementing across both)** — full lifecycle confirmed live
+  (`test_full_crud_lifecycle_with_true_superset_live`, paired with a mocked counterpart): editing
+  one set in round 2 leaves the other three, across both movements, byte-for-byte unchanged.
+  Different multi-set-per-block shape than the mobility test (which varied `round`/`repetition`
+  on a single movement) — no separate bug found here beyond the two already fixed.
+- **`"Rest"` as a real set between two working blocks** — full lifecycle confirmed live
+  (`test_full_crud_lifecycle_with_rest_pseudo_movement_live`): survives an edit to an unrelated
+  block untouched; its `weight_percentage` still comes back a real int, not a fabricated `None`
+  (a plausible place for a null-vs-required mismatch like the reps/duration one to recur — it
+  doesn't).
+- **A generic movement's `description` (e.g. "Handle Move" + "Face Pulls")** — confirmed live it
+  survives a `get_workout`→edit-something-else→`update_workout` round trip
+  (`test_generic_movement_description_survives_unrelated_edit_live`), extending the existing
+  create→get-only coverage. Expected to be safe (`description` is a plain `str` in `SetOut`,
+  never `None`, unlike `prescribed_reps`/`prescribed_duration`) — confirmed, not just assumed.
+- **`update_workout` can shrink the sets list (delete a set via edit)** — confirmed live
+  (`test_update_workout_can_remove_a_set_live`): a 2-set workout updated with a 1-set list ends
+  up with exactly 1 set, matching `update_workout`'s own "replaces the full list" docstring claim.
+- **`weight_percentage=0` is a real, confirmed live data-loss case, distinct from the two bugs
+  above and not fixable in this server.** Sent correctly on the wire
+  (`weightPercentage: 0` in the request body, confirmed by inspecting it directly), but Tonal's
+  own response — both the immediate `create_workout` response and a later `get_workout` — omits
+  the `weightPercentage` key entirely rather than returning it as `0`, most likely Go's
+  `omitempty` treating a zero value as unset. `service._to_set_out`'s default-to-100 fallback
+  (needed in general, since Tonal does sometimes genuinely omit this key) can't distinguish that
+  from "never set," so a real `0` round-trips back as a false `100`. `100`/`150` aren't affected.
+  Documented in `SetOut.weight_percentage`'s field comment (`models.py`) and pinned by
+  `test_weight_percentage_extremes_round_trip_live`, which asserts the *actual* `[100, 100, 150]`
+  outcome (not `[0, 100, 150]`) so a future fix to this — on Tonal's side, not this server's — is
+  what breaks the test, rather than the bug going unnoticed forever.
+- **Supplying both `prescribed_reps` and `prescribed_duration` on a duration-only movement
+  rejects the whole call** — confirmed live (`test_set_with_both_reps_and_duration_confirms_live_behavior`):
+  Tonal's own 400, `"<movement> programmed as reps but must be duration"`, exactly matching
+  `SetIn`'s docstring claim that a wrong reps/duration choice surfaces as Tonal's error rather
+  than being silently resolved in the caller's favor.
+- **Updating an already-archived workout resurrects it** — confirmed live
+  (`test_update_workout_on_archived_workout_live`): `publish_state` flips back to `"published"`
+  and the title/sets change takes effect, rather than being rejected or silently ignored. This
+  server adds no client-side guard against it either way (confirmed by a mocked test asserting
+  the call isn't short-circuited) — the resurrection is entirely Tonal's own behavior.
+- **`movement_count` (the `list_workouts`-time signal) counts generic and `"Rest"` movement ids
+  the same as any other** — confirmed live (`test_list_workouts_movement_count_includes_generic_and_rest_live`):
+  a 2-set workout using one `"Rest"` set and one generic ("Handle Move") set reports
+  `movement_count == 2`, not silently dropping either from Tonal's own `movementIds`.
+
 ## Tool contracts (M2)
 
 ```

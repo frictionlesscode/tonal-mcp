@@ -49,6 +49,15 @@ class SetOut(TypedDict):
     movement_id: str
     prescribed_reps: int | None
     prescribed_duration: int | None
+    # Defaults to 100 when Tonal's raw response omits weightPercentage
+    # (service._to_set_out) -- necessary in general, but confirmed live to
+    # produce one specific false reading: a set actually created with
+    # weight_percentage=0 (sent correctly on the wire) comes back from
+    # Tonal with the weightPercentage key entirely absent, not present-as-
+    # 0 -- likely Go `omitempty` treating a zero value as unset. This
+    # server can't tell that apart from "never set" and reports 100, not
+    # the real 0. Not fixable here -- Tonal's own API has already lost the
+    # distinction by the time this server reads it back.
     weight_percentage: int
     block_number: int
     # block_start/set_group/repetition/repetition_total: needed to write this

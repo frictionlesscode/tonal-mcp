@@ -344,6 +344,130 @@ async def test_full_crud_lifecycle_with_mobility_first_block(fake_client: FakeCl
     assert after["sets"] == []  # confirmed live: Tonal drops sets once archived
 
 
+async def test_full_crud_lifecycle_with_true_superset(fake_client: FakeClient):
+    # A "superset" -- two distinct movements alternating within one block,
+    # distinguished by set_group rather than block_number/round alone
+    # (round increments together across both movements; set_group tells
+    # them apart). Different shape than the mobility test above (which
+    # varied round/repetition on a single movement) -- this is the other
+    # multi-set-per-block structure update_workout has to preserve.
+    superset = [
+        {"movement_id": "bench-1", "block_number": 1, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 2,
+         "prescribed_reps": 10},
+        {"movement_id": "row-1", "block_number": 1, "block_start": False,
+         "set_group": 2, "round": 1, "repetition": 1, "repetition_total": 2,
+         "prescribed_reps": 10},
+        {"movement_id": "bench-1", "block_number": 1, "block_start": False,
+         "set_group": 1, "round": 2, "repetition": 2, "repetition_total": 2,
+         "prescribed_reps": 10},
+        {"movement_id": "row-1", "block_number": 1, "block_start": False,
+         "set_group": 2, "round": 2, "repetition": 2, "repetition_total": 2,
+         "prescribed_reps": 10},
+    ]
+    created = await service.create_workout("Bench/Row Superset", superset)
+    workout_id = created["id"]
+
+    fetched = await service.get_workout(workout_id)
+    assert len(fetched["sets"]) == 4
+    assert [s["movement_id"] for s in fetched["sets"]] == ["bench-1", "row-1", "bench-1", "row-1"]
+    assert [s["set_group"] for s in fetched["sets"]] == [1, 2, 1, 2]
+    assert [s["round"] for s in fetched["sets"]] == [1, 1, 2, 2]
+    assert all(s["block_number"] == 1 for s in fetched["sets"])
+
+    # Edit only the second round's row set, leave the rest exactly as fetched.
+    edited = list(fetched["sets"])
+    edited[3] = dict(edited[3], prescribed_reps=8)
+    await service.update_workout(workout_id, "Bench/Row Superset", edited)
+
+    refetched = await service.get_workout(workout_id)
+    assert refetched["sets"][:3] == fetched["sets"][:3]  # untouched sets survive unchanged
+    assert refetched["sets"][3]["prescribed_reps"] == 8  # the requested edit took effect
+    assert refetched["sets"][3]["set_group"] == 2
+    assert refetched["sets"][3]["round"] == 2
+
+
+async def test_update_workout_can_remove_a_set(fake_client: FakeClient):
+    # update_workout REPLACES the full sets list (per its own docstring) --
+    # this confirms this server's own translation layer doesn't do anything
+    # that would prevent shrinking the list (e.g. no client-side merge with
+    # the previous sets). Whether Tonal's live API actually honors a
+    # shorter list is a separate question -- see the live counterpart.
+    fake_client._workouts["w1"]["sets"] = [
+        {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
+         "blockNumber": 1, "blockStart": True, "setGroup": 1, "round": 1,
+         "repetition": 1, "repetitionTotal": 2, "description": ""},
+        {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
+         "blockNumber": 1, "blockStart": False, "setGroup": 1, "round": 2,
+         "repetition": 2, "repetitionTotal": 2, "description": ""},
+    ]
+    fetched = await service.get_workout("w1")
+    assert len(fetched["sets"]) == 2
+
+    kept = dict(fetched["sets"][0], repetition_total=1)  # now the only/whole set
+    await service.update_workout("w1", "Leg Day", [kept])
+
+    sent = fake_client.calls[-1][3]
+    assert len(sent) == 1
+    assert sent[0].repetition_total == 1
+
+
+async def test_generic_movement_description_survives_unrelated_edit(fake_client: FakeClient):
+    # A generic movement's description ("Handle Move" + description="Face
+    # Pulls") is how Tonal expects freeform work named (see list_exercises'
+    # findings in SPEC.md) -- this confirms an edit to an unrelated set
+    # doesn't lose it on the way through get_workout -> update_workout,
+    # since description (unlike prescribed_reps/prescribed_duration) is a
+    # plain str in SetOut, never None, so there's no null-vs-required
+    # mismatch to worry about here -- just confirming the plumbing.
+    fake_client._workouts["w1"]["sets"] = [
+        {"movementId": "generic-1", "prescribedDuration": 30, "weightPercentage": 100,
+         "blockNumber": 1, "blockStart": True, "setGroup": 1, "round": 1,
+         "repetition": 1, "repetitionTotal": 1, "description": "Face Pulls"},
+        {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
+         "blockNumber": 2, "blockStart": True, "setGroup": 1, "round": 1,
+         "repetition": 1, "repetitionTotal": 1, "description": ""},
+    ]
+    fetched = await service.get_workout("w1")
+    generic_set, working_set = fetched["sets"]
+    assert generic_set["description"] == "Face Pulls"
+
+    edited_working = dict(working_set, prescribed_reps=12)
+    await service.update_workout("w1", "Leg Day", [generic_set, edited_working])
+
+    refetched = await service.get_workout("w1")
+    assert refetched["sets"][0]["description"] == "Face Pulls"  # survived the unrelated edit
+    assert refetched["sets"][0]["movement_id"] == "generic-1"
+    assert refetched["sets"][1]["prescribed_reps"] == 12
+
+
+async def test_list_workouts_movement_count_includes_generic_and_rest_movement_ids(fake_client: FakeClient):
+    # movement_count is computed from the list endpoint's own movementIds
+    # (see service._to_summary) -- confirms that arithmetic doesn't special-
+    # case or drop generic/Rest movement ids client-side. Whether Tonal's
+    # real /user-workouts response actually includes them in movementIds in
+    # the first place is a separate, live-only question -- see the live
+    # counterpart in test_integration.py.
+    fake_client._workouts["w1"]["movementIds"] = ["generic-1", "rest-1"]
+    result = await service.list_workouts(limit=10)
+    w1 = next(w for w in result if w["id"] == "w1")
+    assert w1["movement_count"] == 2
+
+
+async def test_update_workout_does_not_client_side_guard_archived_workouts(fake_client: FakeClient):
+    # This server adds no publish_state check of its own before calling
+    # Tonal's update endpoint -- whatever happens to an update against an
+    # archived workout is entirely up to Tonal's live API. Documents that
+    # this server isn't the one blocking (or silently allowing) it; see the
+    # live counterpart for what Tonal itself actually does.
+    await service.delete_workout("w1")
+    assert fake_client._workouts["w1"]["publishState"] == "archived"
+
+    await service.update_workout("w1", "Leg Day Reborn", [_sample_set()])
+    kinds = [c[0] for c in fake_client.calls]
+    assert "update" in kinds  # not short-circuited client-side
+
+
 async def test_delete_workout_reports_publish_state_after_archive(fake_client: FakeClient):
     result = await service.delete_workout("w1")
     assert result["id"] == "w1"
