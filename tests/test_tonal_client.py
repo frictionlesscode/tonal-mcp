@@ -140,6 +140,48 @@ async def test_update_workout_puts_to_id(mocked: respx.MockRouter):
     assert route.calls.last.request.method == "PUT"
 
 
+async def test_update_workout_sends_block_structure_unmodified(mocked: respx.MockRouter):
+    # Regression check for a live bug report: "edited a workout, some sets'
+    # block/set numbering came back wrong." This isolates the transport
+    # layer -- if distinct block_number/block_start/set_group/round/
+    # repetition/repetition_total values for multiple sets survive to the
+    # wire body unchanged, the corruption isn't happening here (see
+    # service.py's _to_workout_set and models.py's SetOut for the more
+    # likely culprit: get_workout can't return these fields for a caller to
+    # round-trip in the first place).
+    mocked.post(AUTH_URL).mock(return_value=httpx.Response(200, json=_token_response()))
+    route = mocked.put(f"{API_BASE}/user-workouts/wk-1").mock(
+        return_value=httpx.Response(200, json={"id": "wk-1", "title": "Leg Day v2", "duration": 50})
+    )
+    sets = [
+        WorkoutSet(
+            movement_id="m1", block_number=1, block_start=True, set_group=1,
+            round=1, repetition=1, repetition_total=3, prescribed_reps=10,
+        ),
+        WorkoutSet(
+            movement_id="m1", block_number=1, block_start=False, set_group=1,
+            round=2, repetition=2, repetition_total=3, prescribed_reps=10,
+        ),
+        WorkoutSet(
+            movement_id="m2", block_number=2, block_start=True, set_group=2,
+            round=1, repetition=1, repetition_total=1, prescribed_reps=8,
+        ),
+    ]
+
+    async with TonalClient("user@example.com", "hunter2") as client:
+        await client.update_workout("wk-1", "Leg Day v2", sets)
+
+    import json as _json
+
+    sent_sets = _json.loads(route.calls.last.request.content)["sets"]
+    assert [s["blockNumber"] for s in sent_sets] == [1, 1, 2]
+    assert [s["blockStart"] for s in sent_sets] == [True, False, True]
+    assert [s["setGroup"] for s in sent_sets] == [1, 1, 2]
+    assert [s["round"] for s in sent_sets] == [1, 2, 1]
+    assert [s["repetition"] for s in sent_sets] == [1, 2, 1]
+    assert [s["repetitionTotal"] for s in sent_sets] == [3, 3, 1]
+
+
 async def test_delete_workout_sends_delete_expects_no_body(mocked: respx.MockRouter):
     mocked.post(AUTH_URL).mock(return_value=httpx.Response(200, json=_token_response()))
     route = mocked.delete(f"{API_BASE}/user-workouts/wk-1").mock(return_value=httpx.Response(204))

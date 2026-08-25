@@ -23,6 +23,7 @@ check the value, not just that the call succeeded.
 
 from __future__ import annotations
 
+import dataclasses
 import os
 import sys
 import uuid
@@ -134,6 +135,15 @@ async def test_create_and_get_workout(mcp_client: Client, throwaway_workout):
     # to 100.0 here before the fix; this is the regression test for that).
     assert fetched.sets[0].weight_percentage == 100
     assert isinstance(fetched.sets[0].weight_percentage, int)
+    # Regression coverage for the "get_workout round-trip bug" (SPEC.md,
+    # 2026-08-25): these four used to be missing from get_workout's response
+    # entirely -- confirm they now come back matching what _set() sent.
+    assert fetched.sets[0].block_number == 1
+    assert fetched.sets[0].block_start is True
+    assert fetched.sets[0].set_group == 1
+    assert fetched.sets[0].round == 1
+    assert fetched.sets[0].repetition == 1
+    assert fetched.sets[0].repetition_total == 1
 
 
 async def test_update_workout_replaces_title_and_sets(mcp_client: Client, throwaway_workout):
@@ -149,6 +159,123 @@ async def test_update_workout_replaces_title_and_sets(mcp_client: Client, throwa
     fetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
     assert fetched.title == new_title
     assert fetched.sets[0].weight_percentage == 75
+
+
+async def test_edit_workflow_preserves_multi_round_block_structure_live(mcp_client: Client):
+    # The actual live proof for the "get_workout round-trip bug" fix
+    # (SPEC.md, 2026-08-25): create a real 2-round block (not the single
+    # default set _set() gives every other test here), fetch it back,
+    # make a small edit using *only* what get_workout returned -- exactly
+    # what a chat assistant does -- and confirm nothing about the block
+    # structure gets invented or overwritten in the process.
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    two_round_block = [
+        {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 2,
+         "prescribed_duration": 30},
+        {"movement_id": BODYWEIGHT_SQUAT_ID, "block_number": 1, "block_start": False,
+         "set_group": 1, "round": 2, "repetition": 2, "repetition_total": 2,
+         "prescribed_duration": 30},
+    ]
+    created = (await mcp_client.call_tool("create_workout", {"title": title, "sets": two_round_block})).data
+    try:
+        fetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert len(fetched.sets) == 2
+
+        edited_sets = [dataclasses.asdict(s) for s in fetched.sets]
+        edited_sets[1]["prescribed_duration"] = 45  # the only actual change
+
+        await mcp_client.call_tool(
+            "update_workout",
+            {"workout_id": created.id, "title": title, "sets": edited_sets},
+        )
+
+        refetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        by_round = {s.round: s for s in refetched.sets}
+        assert by_round[1].block_start is True
+        assert by_round[1].repetition_total == 2
+        assert by_round[1].prescribed_duration == 30  # untouched set unchanged
+        assert by_round[2].block_start is False
+        assert by_round[2].set_group == 1
+        assert by_round[2].repetition == 2
+        assert by_round[2].repetition_total == 2
+        assert by_round[2].prescribed_duration == 45  # the requested edit took effect
+    finally:
+        try:
+            await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+        except Exception:
+            pass
+
+
+async def test_full_crud_lifecycle_with_mobility_first_block_live(mcp_client: Client):
+    # Suspicion to check, live: edits misbehaving specifically when block 1
+    # is a mobility/warm-up block ahead of the real working block. Exercises
+    # the complete lifecycle -- create -> get -> update (editing only the
+    # working block) -> get -> delete -> get -- against a real Tonal
+    # workout shaped exactly like that: block 1 is two real Cat-Cow rounds
+    # (Tonal's own ActiveRecovery/mobility movement), block 2 is a real
+    # working set (Bodyweight Squat).
+    title = f"PYTEST-INTEGRATION-DELETE-ME-{uuid.uuid4().hex[:8]}"
+    mobility_block = [
+        {"movement_id": CAT_COW_ID, "block_number": 1, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 2,
+         "prescribed_duration": 30},
+        {"movement_id": CAT_COW_ID, "block_number": 1, "block_start": False,
+         "set_group": 1, "round": 2, "repetition": 2, "repetition_total": 2,
+         "prescribed_duration": 30},
+    ]
+    working_set = _set(duration=45)
+    working_set["block_number"] = 2  # a fresh block after the mobility one, not a continuation of it
+
+    created = (await mcp_client.call_tool(
+        "create_workout", {"title": title, "sets": [*mobility_block, working_set]},
+    )).data
+    try:
+        fetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        assert len(fetched.sets) == 3
+        mobility_1, mobility_2, working = fetched.sets
+        assert mobility_1.movement_id == CAT_COW_ID
+        assert mobility_1.block_number == 1
+        assert mobility_1.block_start is True
+        assert mobility_1.repetition_total == 2
+        assert mobility_2.movement_id == CAT_COW_ID
+        assert mobility_2.block_number == 1
+        assert mobility_2.block_start is False
+        assert mobility_2.repetition == 2
+        assert working.movement_id == BODYWEIGHT_SQUAT_ID
+        assert working.block_number == 2
+        assert working.block_start is True  # new block starts fresh after the mobility block
+        assert working.prescribed_duration == 45
+
+        # The actual edit: change only the working set, leave the mobility
+        # block exactly as fetched -- the documented get_workout ->
+        # update_workout edit flow.
+        edited_sets = [dataclasses.asdict(mobility_1), dataclasses.asdict(mobility_2), dataclasses.asdict(working)]
+        edited_sets[2]["prescribed_duration"] = 60
+        await mcp_client.call_tool(
+            "update_workout", {"workout_id": created.id, "title": title, "sets": edited_sets},
+        )
+
+        refetched = (await mcp_client.call_tool("get_workout", {"workout_id": created.id})).data
+        r_mobility_1, r_mobility_2, r_working = refetched.sets
+        assert r_mobility_1.block_number == 1
+        assert r_mobility_1.block_start is True
+        assert r_mobility_1.repetition_total == 2
+        assert r_mobility_2.block_number == 1
+        assert r_mobility_2.block_start is False
+        assert r_mobility_2.repetition == 2
+        assert r_working.block_number == 2
+        assert r_working.block_start is True
+        assert r_working.prescribed_duration == 60  # the requested edit took effect
+
+        deleted = (await mcp_client.call_tool("delete_workout", {"workout_id": created.id})).data
+        assert deleted.sets[0].movement_id == CAT_COW_ID
+        assert deleted.sets[2].prescribed_duration == 60
+    finally:
+        try:
+            await mcp_client.call_tool("delete_workout", {"workout_id": created.id})
+        except Exception:
+            pass
 
 
 async def test_list_workouts_honors_limit_and_reports_honest_set_count(mcp_client: Client, throwaway_workout):

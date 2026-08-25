@@ -69,9 +69,12 @@ async def list_workouts(limit: int = 25) -> list[WorkoutSummary]:
 @mcp.tool
 async def get_workout(workout_id: str) -> WorkoutDetail:
     """Full detail for one custom workout, including every set (movement,
-    prescribed reps or duration, weight_percentage, block/round structure).
-    Fetch this before update_workout so the edit is based on the workout's
-    real current sets, not a guess. Warning: an archived workout's sets come
+    prescribed reps or duration, weight_percentage, and full block/superset
+    structure: block_number, block_start, set_group, round, repetition,
+    repetition_total). Fetch this before update_workout so the edit is based
+    on the workout's real current sets, not a guess -- every field returned
+    here is exactly what update_workout's SetIn needs to write that same set
+    back unchanged. Warning: an archived workout's sets come
     back as an empty list here -- Tonal itself stops returning set data once
     publish_state is 'archived' (confirmed live, not something this server
     strips). delete_workout's own return value captures the sets right

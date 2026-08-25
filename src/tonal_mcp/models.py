@@ -12,6 +12,18 @@ class SetIn(TypedDict):
     advance, so a wrong choice surfaces as Tonal's own 400 rather than being
     silently coerced here.
 
+    prescribed_reps/prescribed_duration accept an explicit `None`, not just
+    omission -- get_workout's SetOut always returns *both* keys, with
+    whichever one isn't used set to `None` (confirmed live: this is exactly
+    how a duration-only movement, e.g. a Cat-Cow/stretch in a mobility
+    block, comes back). A caller following get_workout's own docstring --
+    fetch the current sets, tweak one field, pass the full list straight
+    back to update_workout -- therefore sends that `None` through as-is; if
+    this field only accepted `int`, that call would fail FastMCP's own
+    input validation before ever reaching this server's code (confirmed
+    live: `"Input should be a valid integer"` on the untouched field of
+    every duration-based set in the list, not just the one being edited).
+
     For a movement_id whose catalog entry has is_generic=True (Tonal's
     freeform "Handle Move"/"Rope Move"/"Bar Move"/"Ankle Strap Move" slots
     -- see list_exercises), the movement's own name doesn't describe the
@@ -28,8 +40,8 @@ class SetIn(TypedDict):
     repetition: int
     repetition_total: int
     weight_percentage: NotRequired[int]
-    prescribed_reps: NotRequired[int]
-    prescribed_duration: NotRequired[int]
+    prescribed_reps: NotRequired[int | None]
+    prescribed_duration: NotRequired[int | None]
     description: NotRequired[str]
 
 
@@ -39,7 +51,18 @@ class SetOut(TypedDict):
     prescribed_duration: int | None
     weight_percentage: int
     block_number: int
+    # block_start/set_group/repetition/repetition_total: needed to write this
+    # exact set back via create_workout/update_workout's SetIn (which
+    # requires all four) -- without them here, a get_workout-then-
+    # update_workout edit had no way to recover a set's real block/superset
+    # structure and had to guess, silently overwriting it. Confirmed live
+    # this was actually happening (a "small edit" corrupting an existing
+    # workout's block numbering) before these were added.
+    block_start: bool
+    set_group: int
     round: int
+    repetition: int
+    repetition_total: int
     description: str
 
 

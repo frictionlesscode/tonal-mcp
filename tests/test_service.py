@@ -17,6 +17,7 @@ class FakeClient:
 
     def __init__(self):
         self.calls: list[tuple] = []
+        self._next_id = 1
         self._workouts: dict[str, dict] = {
             "w1": {
                 "id": "w1", "title": "Leg Day", "description": "d", "publishState": "published",
@@ -24,7 +25,8 @@ class FakeClient:
                 "movementIds": ["m1", "m2"],
                 "sets": [
                     {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
-                     "blockNumber": 1, "round": 1, "description": ""},
+                     "blockNumber": 1, "blockStart": True, "setGroup": 1, "round": 1,
+                     "repetition": 1, "repetitionTotal": 1, "description": ""},
                 ],
             },
             "w2": {"id": "w2", "title": "Push Day", "description": "", "publishState": "published",
@@ -53,11 +55,30 @@ class FakeClient:
 
     async def create_workout(self, title, sets, description=""):
         self.calls.append(("create", title, sets, description))
-        return {"id": "new-1", "title": title, "duration": 60}
+        # Actually persists (rather than just returning a canned id) so a
+        # full create -> get -> update -> get -> delete -> get lifecycle can
+        # be exercised against this fake, not just each call in isolation.
+        new_id = f"new-{self._next_id}"
+        self._next_id += 1
+        self._workouts[new_id] = {
+            "id": new_id, "title": title, "description": description, "publishState": "published",
+            "duration": 60, "coachId": "coach-1", "assetId": "asset-1", "level": "intermediate",
+            "movementIds": list({s.movement_id for s in sets}),
+            "sets": [s.to_api() for s in sets],
+        }
+        return dict(self._workouts[new_id])
 
     async def update_workout(self, workout_id, title, sets, coach_id="", asset_id="", level="", description=""):
         self.calls.append(("update", workout_id, title, sets, coach_id, asset_id, level, description))
-        return {"id": workout_id, "title": title, "duration": 70}
+        # Replaces the full sets list, same as the real API -- not a patch.
+        self._workouts[workout_id] = {
+            **self._workouts[workout_id],
+            "title": title, "description": description, "coachId": coach_id,
+            "assetId": asset_id, "level": level,
+            "movementIds": list({s.movement_id for s in sets}),
+            "sets": [s.to_api() for s in sets],
+        }
+        return dict(self._workouts[workout_id])
 
     async def delete_workout(self, workout_id):
         self.calls.append(("delete", workout_id))
@@ -179,6 +200,150 @@ async def test_update_workout_fetches_existing_first_for_coach_asset_level(fake_
     assert description == "d"  # falls back to existing description when none given
 
 
+async def test_update_workout_passes_block_fields_through_unmodified(fake_client: FakeClient):
+    # Isolates service.py's own SetIn -> WorkoutSet translation (_to_workout_set)
+    # from the get_workout round-trip gap tested below: given a caller that
+    # *does* supply real block_start/set_group/repetition/repetition_total
+    # values, this checks the server itself doesn't default or clobber them
+    # on the way to the API call.
+    rich_sets = [
+        {"movement_id": "m1", "block_number": 2, "block_start": False,
+         "set_group": 2, "round": 3, "repetition": 3, "repetition_total": 3,
+         "prescribed_reps": 10},
+    ]
+    await service.update_workout("w1", "Leg Day v2", rich_sets)
+
+    sent = fake_client.calls[-1][3][0]
+    assert sent.block_number == 2
+    assert sent.block_start is False
+    assert sent.set_group == 2
+    assert sent.round == 3
+    assert sent.repetition == 3
+    assert sent.repetition_total == 3
+
+
+async def test_get_workout_returns_full_block_structure(fake_client: FakeClient):
+    # Regression test for a live bug report: "made a small edit to an
+    # existing workout and the block/set numbering came back wrong." Root
+    # cause was that SetOut (what get_workout returned) only carried
+    # movement_id/prescribed_reps/prescribed_duration/weight_percentage/
+    # block_number/round/description -- but update_workout's SetIn (and
+    # TonalClient.update_workout, which rejects a call missing them) also
+    # requires block_start, set_group, repetition, and repetition_total for
+    # every set. get_workout's own docstring says to fetch it first "so the
+    # edit is based on the workout's real current sets, not a guess" --
+    # that's only true if every field SetIn needs actually comes back here.
+    fake_client._workouts["w1"]["sets"] = [
+        {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
+         "blockNumber": 2, "blockStart": False, "setGroup": 2, "round": 2,
+         "repetition": 2, "repetitionTotal": 3, "description": ""},
+    ]
+
+    detail = await service.get_workout("w1")
+    fetched = detail["sets"][0]
+    assert fetched["block_number"] == 2
+    assert fetched["block_start"] is False
+    assert fetched["set_group"] == 2
+    assert fetched["round"] == 2
+    assert fetched["repetition"] == 2
+    assert fetched["repetition_total"] == 3
+
+
+async def test_edit_workflow_preserves_multi_round_block_structure(fake_client: FakeClient):
+    # End-to-end version of the fix: w1's real set is one of a 3-round
+    # superset block (block_number=2, set_group=2, round/repetition=2 of
+    # repetition_total=3, block_start=False) -- realistic shape for "3 sets
+    # of this exercise, superset with something else." A caller follows
+    # get_workout's docstring (fetch current sets, change one field, write
+    # the full list back) using *only* the fields get_workout actually
+    # returns -- no inventing anything -- and the original block/superset
+    # structure survives untouched.
+    fake_client._workouts["w1"]["sets"] = [
+        {"movementId": "m1", "prescribedReps": 10, "weightPercentage": 100,
+         "blockNumber": 2, "blockStart": False, "setGroup": 2, "round": 2,
+         "repetition": 2, "repetitionTotal": 3, "description": ""},
+    ]
+
+    fetched = await service.get_workout("w1")
+    edited = dict(fetched["sets"][0], prescribed_reps=12)  # the "small change" the user actually wanted
+
+    await service.update_workout("w1", "Leg Day", [edited])
+
+    sent = fake_client.calls[-1][3][0]
+    assert sent.prescribed_reps == 12  # the actual requested change took effect
+    assert sent.block_number == 2
+    assert sent.block_start is False
+    assert sent.set_group == 2
+    assert sent.round == 2
+    assert sent.repetition == 2
+    assert sent.repetition_total == 3
+
+
+async def test_full_crud_lifecycle_with_mobility_first_block(fake_client: FakeClient):
+    # Suspicion to check: edits misbehave specifically when block 1 is a
+    # mobility/warm-up block (e.g. Cat-Cow) ahead of the real working block.
+    # Exercises the complete lifecycle -- create -> get -> update (editing
+    # only the working block) -> get -> delete -> get -- against a workout
+    # shaped exactly like that: block 1 is two Cat-Cow rounds (duration-based,
+    # no prescribed_reps -- realistic for a stretch), block 2 is the working
+    # set (reps-based). service.py has no movement-family-specific branching,
+    # so if this passes, an edit bug here would have to live in Tonal's own
+    # API behavior, not this server's translation layer -- see the live
+    # counterpart of this test in test_integration.py for that check.
+    cat_cow_block = [
+        {"movement_id": "catcow-1", "block_number": 1, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 2,
+         "prescribed_duration": 30},
+        {"movement_id": "catcow-1", "block_number": 1, "block_start": False,
+         "set_group": 1, "round": 2, "repetition": 2, "repetition_total": 2,
+         "prescribed_duration": 30},
+    ]
+    working_set = {
+        "movement_id": "bench-1", "block_number": 2, "block_start": True,
+        "set_group": 2, "round": 1, "repetition": 1, "repetition_total": 1,
+        "prescribed_reps": 10, "weight_percentage": 50,
+    }
+    created = await service.create_workout("Warmup Then Bench", [*cat_cow_block, working_set])
+    workout_id = created["id"]
+
+    fetched = await service.get_workout(workout_id)
+    assert len(fetched["sets"]) == 3
+    mobility_1, mobility_2, working = fetched["sets"]
+    assert mobility_1["movement_id"] == "catcow-1"
+    assert mobility_1["block_number"] == 1
+    assert mobility_1["block_start"] is True
+    assert mobility_1["repetition_total"] == 2
+    assert mobility_2["block_number"] == 1
+    assert mobility_2["block_start"] is False
+    assert mobility_2["repetition"] == 2
+    assert working["movement_id"] == "bench-1"
+    assert working["block_number"] == 2
+    assert working["block_start"] is True  # new block starts fresh after the mobility block
+    assert working["weight_percentage"] == 50
+
+    # The actual edit: bump the working set's weight, leave the mobility
+    # block exactly as fetched -- exactly what a chat assistant following
+    # get_workout's docstring does.
+    edited_working = dict(working, weight_percentage=60)
+    await service.update_workout(workout_id, "Warmup Then Bench", [mobility_1, mobility_2, edited_working])
+
+    refetched = await service.get_workout(workout_id)
+    r_mobility_1, r_mobility_2, r_working = refetched["sets"]
+    assert r_mobility_1 == mobility_1  # untouched block survives the edit unchanged
+    assert r_mobility_2 == mobility_2
+    assert r_working["weight_percentage"] == 60  # the requested edit took effect
+    assert r_working["block_number"] == 2
+    assert r_working["block_start"] is True
+
+    deleted = await service.delete_workout(workout_id)
+    assert deleted["sets"][0]["movement_id"] == "catcow-1"
+    assert deleted["sets"][2]["weight_percentage"] == 60
+
+    after = await service.get_workout(workout_id)
+    assert after["publish_state"] == "archived"
+    assert after["sets"] == []  # confirmed live: Tonal drops sets once archived
+
+
 async def test_delete_workout_reports_publish_state_after_archive(fake_client: FakeClient):
     result = await service.delete_workout("w1")
     assert result["id"] == "w1"
@@ -195,7 +360,9 @@ async def test_delete_workout_snapshot_captures_sets_before_they_vanish(fake_cli
     assert result["title"] == "Leg Day"
     assert result["sets"] == [
         {"movement_id": "m1", "prescribed_reps": 10, "prescribed_duration": None,
-         "weight_percentage": 100, "block_number": 1, "round": 1, "description": ""},
+         "weight_percentage": 100, "block_number": 1, "block_start": True,
+         "set_group": 1, "round": 1, "repetition": 1, "repetition_total": 1,
+         "description": ""},
     ]
 
     # And confirm the thing this exists to work around: a follow-up

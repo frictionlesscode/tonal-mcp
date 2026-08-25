@@ -318,6 +318,66 @@ in this file:
   `test_list_exercises_family_filter_finds_active_recovery_live`), pinned to `Cat-Cow`'s real
   live movement id so a regression here fails loudly rather than silently returning `[]` again.
 
+## `get_workout` round-trip bug (2026-08-25) — filed after real chat testing
+
+Live bug report: asked to make a small edit to an existing workout via chat, and some sets'
+block/set numbering came back wrong on Tonal's side afterward.
+
+- **`get_workout`'s `SetOut` shape didn't return everything `update_workout`'s `SetIn` requires
+  per set.** `SetOut` returned `movement_id`, `prescribed_reps`/`prescribed_duration`,
+  `weight_percentage`, `block_number`, `round`, `description` — but `SetIn` (and
+  `TonalClient.update_workout`, which rejects a call missing them) also requires `block_start`,
+  `set_group`, `repetition`, and `repetition_total` for every set. `get_workout`'s own docstring
+  said to fetch it first "so the edit is based on the workout's real current sets, not a guess,"
+  but that promise was false for those four fields — a caller (chat or otherwise) following the
+  documented fetch/tweak/write-back flow had no way to recover them from the read and had to
+  invent values. Confirmed as the root cause via a mocked round-trip (`test_service.py`):
+  before the fix, `block_number`/`round` survived a get-then-update round trip unchanged (they
+  were the only two actually returned), while `set_group`/`repetition`/`repetition_total`/
+  `block_start` had to be invented and were silently overwritten — exactly the shape of the live
+  report; `test_get_workout_returns_full_block_structure` and
+  `test_edit_workflow_preserves_multi_round_block_structure` are the regression tests for the fix.
+  Separately confirmed the corruption wasn't happening in this server's own request translation:
+  `test_update_workout_passes_block_fields_through_unmodified` and
+  `test_update_workout_sends_block_structure_unmodified` show all six block/round fields reach
+  the wire byte-for-byte unchanged when a caller *does* supply real values.
+- **Fixed by adding the missing four fields to `SetOut`** (`models.py`) and populating them in
+  `service._to_set_out` from Tonal's raw `blockStart`/`setGroup`/`repetition`/`repetitionTotal`
+  keys, so `get_workout`'s response now carries the complete shape `update_workout` needs to
+  write any given set back unchanged — no more invented values on an edit that doesn't touch a
+  set's block/superset structure. `get_workout`'s docstring updated to say so explicitly.
+
+## `SetIn` null-reps/null-duration bug (2026-08-25) — found writing the round-trip's own live tests
+
+Follow-up to the round-trip bug above, found while adding a live full-CRUD test for a workout
+whose first block is duration-based (a mobility/warm-up block — Cat-Cow) followed by a
+reps-and/or-duration working block, exercising exactly the "fetch get_workout's sets, edit one
+field, write the whole list back" flow the docstring recommends.
+
+- **A literal, unmodified round trip failed FastMCP's own input validation** — confirmed live:
+  `update_workout` rejected the call with `sets.N.prescribed_reps: Input should be a valid
+  integer [type=int_type, input_value=None]` for *every* duration-based set in the list, not
+  just the one being edited. Root cause: `SetOut` (what `get_workout` returns) always includes
+  *both* `prescribed_reps` and `prescribed_duration` keys, with whichever one the set doesn't use
+  set to `None` — but `SetIn` (`update_workout`'s input) declared them as `NotRequired[int]`, not
+  `NotRequired[int | None]`. Omitting the key is fine; explicitly sending the `None` that
+  `get_workout` itself just handed back is not. A movement programmed by duration (which
+  mobility/stretch work almost always is) makes this trigger on *every* untouched set in the
+  list, not just the one an edit touches — worse than the earlier bug in that it doesn't silently
+  corrupt data, it makes the entire edit fail outright.
+- **Fixed by widening `SetIn.prescribed_reps`/`prescribed_duration` to `NotRequired[int | None]`**
+  (`models.py`) — an explicit `None` for either field is now accepted the same as omitting it
+  (`service._to_workout_set`'s `.get(...)` already treated them identically; the fix is purely at
+  the schema/validation boundary). No change needed to what reaches Tonal's own API:
+  `WorkoutSet.to_api()` already omits a `None` field's key rather than sending it.
+- Regression-tested live: `test_full_crud_lifecycle_with_mobility_first_block_live` and
+  `test_edit_workflow_preserves_multi_round_block_structure_live` (`test_integration.py`) both do
+  the exact fetch/edit-one-field/write-back-the-rest-unmodified flow against real duration-based
+  sets and now pass; both failed with the validation error above before this fix. A mocked
+  counterpart isn't meaningful here — this bug is specifically about FastMCP's generated input
+  schema, a layer the mocked `FakeClient` tests bypass entirely (see `test_integration.py`'s own
+  module docstring on why it calls through the real tool-call path).
+
 ## Tool contracts (M2)
 
 ```
@@ -343,4 +403,6 @@ round, repetition, repetition_total, weight_percentage=100, prescribed_reps?,
 prescribed_duration?, description=""}` — mirrors `WorkoutSet` in `tonal_client.py`. Exactly
 one of `prescribed_reps`/`prescribed_duration` must be set, and which one is *required* by
 Tonal depends on the specific movement (see M1 finding above) — the tool should let Tonal's
-own 400 surface rather than guessing.
+own 400 surface rather than guessing. `get_workout`'s returned sets (`SetOut`) carry this same
+full shape (see "`get_workout` round-trip bug" below) so a set it returns can be passed straight
+back into `update_workout` unchanged.

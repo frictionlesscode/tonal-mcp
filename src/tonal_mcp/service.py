@@ -75,7 +75,11 @@ def _to_set_out(raw: dict[str, Any]) -> SetOut:
         prescribed_duration=raw.get("prescribedDuration"),
         weight_percentage=raw.get("weightPercentage", 100),
         block_number=raw.get("blockNumber", 0),
+        block_start=raw.get("blockStart", False),
+        set_group=raw.get("setGroup", 1),
         round=raw.get("round", 1),
+        repetition=raw.get("repetition", 1),
+        repetition_total=raw.get("repetitionTotal", 1),
         description=raw.get("description", ""),
     )
 
