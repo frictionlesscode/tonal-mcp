@@ -1,5 +1,7 @@
 # tonal-mcp
 
+> **Unofficial and unaffiliated.** This project is not affiliated with, endorsed by, or supported by Tonal. Tonal publishes no public API; this signs in the same way the mobile app does and can break at any time. Running it is a deliberate choice you should understand first — see [docs/tonal-access.md](docs/tonal-access.md).
+
 A self-hosted [MCP](https://modelcontextprotocol.io) server that gives Claude full
 read/write access to your **Tonal custom workouts** — list, inspect, create, edit, and
 archive them, straight from a chat. It's the write counterpart to the read-only data Claude
