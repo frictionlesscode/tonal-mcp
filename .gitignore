@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+/data/
+*.egg-info/
+.pytest_cache/
+
+# TLS certs/keys (e.g. Tailscale Funnel) — never commit these.
+*.crt
+*.key
+*.pem
